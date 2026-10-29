@@ -1,0 +1,42 @@
+Trên GitHub hiện nay, khi làm việc với các **AI Coding Agent** (như Cursor, Windsurf, Claude Code, GitHub Copilot Workspace, hay Cline), khái niệm "Skill" hiệu quả nhất chính là việc sử dụng các bộ **Agent Rules / System Instructions** (thường được lưu dưới tên `.cursorrules`, `CLAUDE.md`, hoặc `.github/copilot-instructions.md`) kết hợp với các **Web Component / Template chuẩn của cộng đồng khoa học dữ liệu**.
+
+Trước khi đi vào chi tiết các công cụ và kho lưu trữ (repositories) trên GitHub giúp bạn tự động hóa quy trình này, tôi sẽ khởi tạo ngay cho bạn một file Markdown (`.md`) đóng vai trò là **"Bộ quy tắc tối cao" (Master Agent Specification & Skill Prompt)**. Bạn chỉ cần tải file này về, đặt vào thư mục gốc của dự án (hoặc ném thẳng vào khung chat của Coding Agent trước khi ra lệnh), AI sẽ lập tức bị khóa vào khuôn khổ: **Không giả lập toán học, bắt buộc thiết kế 3 khung đồng bộ, tích hợp song ngữ thông minh và tự tạo bộ kiểm thử**.
+
+Tôi đang tiến hành tạo file `ai_interactive_visualizer_spec.md` chứa toàn bộ quy chuẩn kỹ thuật dành cho Coding Agent của bạn.
+
+---
+
+### Các "Skill", Công cụ và Kho lưu trữ trên GitHub giúp bạn thực hiện việc này chuẩn chỉ nhất
+
+Để biến file `.md` bên trên thành sức mạnh tự động hóa thực sự, bạn có thể kết hợp với 4 nguồn tài nguyên và "Skill" mạnh nhất đang có trên GitHub hiện nay:
+
+#### 1. Hệ thống "Agent Skills & Rules" (Biến AI thành chuyên gia tự động)
+
+Nếu bạn dùng các trình soạn thảo code tích hợp AI như **Cursor**, **Windsurf**, **Cline (VS Code extension)** hoặc **Claude Code**, cộng đồng GitHub gọi các bộ hướng dẫn chuyên biệt cho từng tác vụ là **Agent Rules / Skills**:
+
+* **Cách áp dụng ngay:** Bạn đổi tên file `.md` tôi vừa tạo ở trên thành `.cursorrules` (nếu dùng Cursor) hoặc `CLAUDE.md` (nếu dùng Claude Code) và để ở thư mục gốc của repo GitHub. Từ lúc đó, AI của bạn đã được "cài cắm" sẵn kỹ năng này. Bạn chỉ cần gõ: *"Tạo cho tôi bài học về thuật toán K-Means Clustering trong file `kmeans.html`"*, nó sẽ tự động chia 3 cột, tự nhúng KaTeX, tự làm hệ thống hover song ngữ và tự viết hàm toán học thật mà bạn không cần nhắc lại.
+* **Kho tham khảo trên GitHub:** Bạn có thể tìm kiếm từ khóa `awesome-cursorrules` (của tác giả *PatrickJS*) trên GitHub để xem cách cộng đồng cấu trúc các bộ quy tắc điều khiển AI Agent.
+
+#### 2. Framework chuẩn mực nhất từ giới học thuật: `distillpub/template`
+
+* Trên GitHub, tổ chức **Distill** (do các nhà nghiên cứu từ Google Brain, OpenAI sáng lập chuyên làm các bài báo AI tương tác) có mở mã nguồn bộ khung giao diện của họ tại repo: **`distillpub/template`**.
+* **Giá trị cho bạn:** Bộ khung này cung cấp sẵn các Web Components (thẻ HTML tùy chỉnh như `<d-math>`, `<d-figure>`, `<d-hover-box>`) được thiết kế riêng cho việc đọc hiểu các thuật toán AI phức tạp. Bạn có thể bảo Coding Agent tham khảo phong cách trình bày của Distill để tạo ra các trang web có thẩm mỹ chuẩn nghiên cứu quốc tế.
+
+#### 3. Các Repo Mã nguồn mở để AI của bạn "Học tập & Đối chiếu" (Reference Repos)
+
+Khi yêu cầu AI viết phần lõi toán học bằng JavaScript, đôi khi AI tự viết từ đầu sẽ không tối ưu bằng việc bạn chỉ cho nó xem cấu trúc của những repo kinh điển đã được kiểm chứng trên GitHub:
+
+* **`poloclub/cnn-explainer` & `poloclub/transformer-explainer`:** Hai repo đình đám nhất của phòng thí nghiệm Polo Club of Data Science (Georgia Tech). Toàn bộ cách họ biểu diễn ma trận tích chập (CNN) và cơ chế Attention (Transformer) trên trình duyệt đều nằm mở trên GitHub.
+* **`tensorflow/playground`:** Mã nguồn hoàn chỉnh bằng TypeScript/JS của trang TensorFlow Playground nổi tiếng. Cách họ viết một mạng nơ-ron siêu nhỏ gọn chạy trực tiếp trên trình duyệt (chỉ vài trăm dòng code lõi trong file `nn.ts`) là hình mẫu hoàn hảo để bạn yêu cầu AI của mình tái tạo lại.
+* **`karpathy/convnetjs`:** Repo của Andrej Karpathy (cựu Giám đốc AI tại Tesla, đồng sáng lập OpenAI) viết toàn bộ các thuật toán Deep Learning (CNN, MLP, Reinforcement Learning) hoàn toàn bằng **JavaScript thuần từ con số 0** không dùng thư viện ngoài. Bạn có thể lấy các đoạn hàm tính toán trong repo này làm "chuẩn vàng" để kiểm tra xem code JS mà LLM sinh ra cho bạn có đúng công thức đạo hàm hay không.
+
+#### 4. Mẹo quy trình (Workflow) tạo trọn bộ thư viện GitHub trong thời gian ngắn
+
+Để dự án của bạn trông chuyên nghiệp như một cuốn sách điện tử tương tác thực thụ:
+
+1. Bạn tạo một repo trên GitHub (ví dụ: `interactive-ai-notes`).
+2. Đặt file `ai_interactive_visualizer_spec.md` vừa tạo vào thư mục gốc.
+3. Bảo AI tạo một file `index.html` làm **Dashboard / Mục lục tổng** chia theo các chương (Toán nền tảng $\rightarrow$ Machine Learning cổ điển $\rightarrow$ Computer Vision / CNN $\rightarrow$ Chuỗi thời gian & Transformer).
+4. Mỗi ngày ôn tập 1 thuật toán, bạn chỉ cần ra lệnh cho AI tạo 1 file `.html` mới theo đúng Spec, mở chế độ **3x3 Audit Mode** nhẩm tay 30 giây để duyệt toán học, sau đó `git push` lên GitHub Pages.
+
+Bạn muốn chỉnh sửa thêm điều khoản nào trong file quy chuẩn `.md` trên không, hay muốn mình dùng chính file quy chuẩn đó để chạy thử nghiệm tạo ra trang HTML đầu tiên cho bạn xem thử chất lượng?

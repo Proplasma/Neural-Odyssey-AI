@@ -1,0 +1,19 @@
+# OS generated files
+Thumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+.DS_Store
+
+# Temporary & Editor files
+*.tmp
+*.bak
+*.swp
+*~
+.vscode/
+.idea/
+
+# Node / Logs (if any)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*

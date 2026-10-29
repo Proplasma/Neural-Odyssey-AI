@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>K-Means Clustering | Interactive AI/ML Algorithm Visualizer</title>
+  
+  <!-- Tailwind CSS CDN với Dark Mode Class -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class'
+    }
+  </script>
+  
+  <!-- KaTeX CDN -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js" 
+          onload="renderMathInElement(document.body);"></script>
+
+  <!-- Google Fonts: Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .mono { font-family: 'JetBrains Mono', monospace; }
+    
+    .term-tooltip {
+      position: relative;
+      font-weight: 600;
+      text-decoration: underline dotted #3b82f6 2px;
+      cursor: help;
+      color: #2563eb;
+    }
+    .dark .term-tooltip {
+      color: #60a5fa;
+    }
+    .term-tooltip:hover .term-content {
+      visibility: visible;
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .term-content {
+      visibility: hidden;
+      opacity: 0;
+      position: absolute;
+      bottom: 125%;
+      left: 50%;
+      transform: translateX(-50%) translateY(4px);
+      transition: all 0.15s ease-in-out;
+      width: 260px;
+      background-color: #0f172a;
+      color: #f8fafc;
+      font-size: 0.75rem;
+      line-height: 1.1rem;
+      border-radius: 0.5rem;
+      padding: 0.6rem 0.75rem;
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+      z-index: 60;
+      pointer-events: none;
+    }
+  </style>
+
+  <!-- Script khôi phục Theme từ LocalStorage ngay khi tải trang -->
+  <script>
+    if (localStorage.getItem('theme') === 'dark' || (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  </script>
+</head>
+<body class="bg-slate-50 text-slate-800 dark:bg-slate-950 dark:text-slate-100 antialiased min-h-screen flex flex-col transition-colors duration-200">
+
+  <!-- TOP HEADER / VERIFICATION BAR -->
+  <header class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 px-6 py-3.5 bg-white/90 dark:bg-slate-900/90 backdrop-blur sticky top-0 z-40 shadow-sm transition-colors">
+    <div class="flex items-center gap-3">
+      <a href="../../index.html" class="text-xs font-semibold px-2.5 py-1 rounded-md bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition">
+        ← Mục lục
+      </a>
+      <span class="text-xs font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 uppercase tracking-wider">Chương 02: Classical ML</span>
+      <h1 class="text-base font-bold text-slate-900 dark:text-white hidden sm:block">K-Means Clustering Visualizer</h1>
+    </div>
+
+    <div class="flex items-center gap-3">
+      <!-- Reference Badge kiểm chứng nguồn gốc -->
+      <a href="https://github.com/trekhleb/homemade-machine-learning/tree/master/homemade_machine_learning/k_means" target="_blank" rel="noopener noreferrer" 
+         class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-700 dark:text-slate-200 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 rounded-lg border border-slate-300 dark:border-slate-700 transition-colors"
+         title="Click để đối chiếu với mã nguồn chuẩn mực tại trekhleb/homemade-machine-learning">
+        <svg class="w-4 h-4 text-slate-800 dark:text-slate-200" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
+        </svg>
+        <span class="hidden md:inline">Tham chiếu: <strong>trekhleb/homemade-ml</strong></span>
+      </a>
+
+      <!-- Nút bật chế độ kiểm thử 3x3 -->
+      <button id="btn-audit" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-emerald-800 dark:text-emerald-300 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950 dark:hover:bg-emerald-900 rounded-lg border border-emerald-300 dark:border-emerald-700 transition-colors">
+        🧪 <span>3x3 Audit Mode</span>
+      </button>
+
+      <!-- NÚT CÔNG TẮC DARK / LIGHT MODE GÓC PHẢI TRÊN CÙNG -->
+      <button id="theme-toggle" class="p-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 transition" 
+              title="Chuyển đổi giao diện Sáng / Tối" aria-label="Toggle Theme">
+        <!-- Sun Icon (hiện khi Dark Mode) -->
+        <svg id="theme-toggle-sun" class="w-4 h-4 hidden" fill="currentColor" viewBox="0 0 20 20">
+          <path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" fill-rule="evenodd" clip-rule="evenodd"/>
+        </svg>
+        <!-- Moon Icon (hiện khi Light Mode) -->
+        <svg id="theme-toggle-moon" class="w-4 h-4 hidden" fill="currentColor" viewBox="0 0 20 20">
+          <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"/>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- MAIN 3-PANE LAYOUT -->
+  <main class="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-6 p-6 max-w-7xl mx-auto w-full">
+    
+    <!-- KHUNG 1: KHÔNG GIAN ĐỒ HỌA TƯƠNG TÁC (COL 7) -->
+    <section class="lg:col-span-7 flex flex-col gap-4">
+      <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-4 flex flex-col transition-colors">
+        <div class="flex items-center justify-between mb-2">
+          <div class="flex items-center gap-2">
+            <h2 class="text-sm font-bold text-slate-800 dark:text-white uppercase tracking-wide">
+              1. Không gian Đồ họa Tương tác
+            </h2>
+            <span id="step-badge" class="px-2 py-0.5 rounded text-[11px] font-semibold bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300">
+              Vòng lặp 0: Khởi tạo
+            </span>
+          </div>
+          <span class="text-xs text-slate-500 dark:text-slate-400">💡 Kéo thả tâm cụm (⨁) hoặc click để thêm điểm</span>
+        </div>
+
+        <!-- Canvas Area -->
+        <div class="relative bg-slate-900 rounded-lg overflow-hidden border border-slate-800">
+          <canvas id="cluster-canvas" width="640" height="420" class="w-full h-auto cursor-crosshair block"></canvas>
+          <div id="canvas-hint" class="absolute bottom-2 left-2 text-[10px] text-slate-400 bg-slate-900/80 px-2 py-1 rounded border border-slate-700 pointer-events-none">
+            Tọa độ: [0, 640] x [0, 420]
+          </div>
+        </div>
+
+        <!-- Control Toolbar -->
+        <div class="flex flex-wrap items-center justify-between gap-3 mt-4 pt-3 border-t border-slate-100 dark:border-slate-800">
+          <div class="flex items-center gap-2">
+            <button id="btn-play" class="px-3.5 py-1.5 text-xs font-semibold rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition flex items-center gap-1.5">
+              <span id="play-icon">▶</span> <span id="play-text">Chạy Tự Động</span>
+            </button>
+            <button id="btn-step" class="px-3.5 py-1.5 text-xs font-semibold rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 transition">
+              ⏭ Bước Tiếp Theo
+            </button>
+            <button id="btn-reset" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 transition">
+              ↺ Tạo Lại Dữ Liệu
+            </button>
+          </div>
+
+          <div class="flex items-center gap-3">
+            <div class="flex items-center gap-1 text-xs text-slate-600 dark:text-slate-300">
+              <span>Số cụm (K):</span>
+              <select id="select-k" class="bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded px-2 py-1 text-xs font-semibold text-slate-800 dark:text-slate-100">
+                <option value="2">K = 2</option>
+                <option value="3" selected>K = 3</option>
+                <option value="4">K = 4</option>
+              </select>
+            </div>
+
+            <div class="flex items-center gap-1 text-xs text-slate-600 dark:text-slate-300">
+              <span>Tốc độ:</span>
+              <input id="slider-speed" type="range" min="200" max="1500" step="100" value="600" class="w-20 accent-blue-600">
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CỘT PHẢI: KHUNG 2 & KHUNG 3 (COL 5) -->
+    <section class="lg:col-span-5 flex flex-col gap-5">
+
+      <!-- KHUNG 2: TOÁN HỌC SỐNG & TRẠNG THÁI BIẾN -->
+      <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-4 flex flex-col gap-3.5 transition-colors">
+        <div class="border-b border-slate-100 dark:border-slate-800 pb-2">
+          <h2 class="text-sm font-bold text-slate-800 dark:text-white uppercase tracking-wide">
+            2. Toán Học Sống & Trạng Thái Biến
+          </h2>
+          <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Biểu diễn công thức thật, giá trị thật theo từng bước</p>
+        </div>
+
+        <!-- Công thức khoảng cách Euclid -->
+        <div class="bg-slate-50 dark:bg-slate-950 p-2.5 rounded-lg border border-slate-200 dark:border-slate-800">
+          <div class="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">Gán nhãn điểm theo khoảng cách Euclid cực tiểu:</div>
+          <div class="text-xs text-center overflow-x-auto" id="formula-euclid">
+            $$c^{(i)} = \arg\min_k \|x^{(i)} - \mu_k\|^2$$
+          </div>
+        </div>
+
+        <!-- Công thức cập nhật tâm cụm -->
+        <div class="bg-slate-50 dark:bg-slate-950 p-2.5 rounded-lg border border-slate-200 dark:border-slate-800">
+          <div class="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">Cập nhật tọa độ tâm cụm bằng trung bình cộng:</div>
+          <div class="text-xs text-center overflow-x-auto" id="formula-centroid">
+            $$\mu_k = \frac{1}{|S_k|} \sum_{x \in S_k} x$$
+          </div>
+        </div>
+
+        <!-- Trạng thái số liệu trực tiếp (Live State Metrics) -->
+        <div class="bg-blue-50/70 dark:bg-blue-950/40 p-3 rounded-lg border border-blue-200 dark:border-blue-900/60 flex flex-col gap-2">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-blue-900 dark:text-blue-300 uppercase">Hàm Mất Mát (WCSS / Inertia):</span>
+            <span id="metric-inertia" class="mono text-xs font-bold text-blue-900 dark:text-blue-200">0.00</span>
+          </div>
+          <div class="text-[11px] text-blue-800/80 dark:text-blue-400 overflow-x-auto">
+            $$J = \sum_{k=1}^K \sum_{x \in S_k} \|x - \mu_k\|^2$$
+          </div>
+          
+          <!-- Tọa độ các tâm cụm hiện thời (Color-coded) -->
+          <div class="mt-1 pt-2 border-t border-blue-200/60 dark:border-blue-900/60 flex flex-col gap-1.5" id="centroid-coords-box">
+            <!-- Dynamic centroids list -->
+          </div>
+        </div>
+
+        <!-- Thuật ngữ song ngữ với Interactive Tooltip -->
+        <div class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed bg-slate-50 dark:bg-slate-950 p-2.5 rounded-lg border border-slate-200 dark:border-slate-800">
+          K-Means là thuật toán 
+          <span class="term-tooltip">Unsupervised Learning
+            <span class="term-content">
+              <strong>Unsupervised Learning</strong>: Học không giám sát.<br>
+              <em class="text-slate-300">Bản chất:</em> Mô hình tự tìm cấu trúc ẩn và phân nhóm dữ liệu mà không có nhãn đầu ra gắn sẵn.
+            </span>
+          </span>
+          hoạt động qua 2 bước lặp: Gán nhãn cho 
+          <span class="term-tooltip">Centroid
+            <span class="term-content">
+              <strong>Centroid ($\mu_k$)</strong>: Trọng tâm/Tâm cụm.<br>
+              <em class="text-slate-300">Ý nghĩa:</em> Tọa độ đại diện trung bình cho tất cả các điểm dữ liệu thuộc cụm đó.
+            </span>
+          </span>
+          gần nhất và cập nhật vị trí cho đến khi đạt 
+          <span class="term-tooltip">Convergence
+            <span class="term-content">
+              <strong>Convergence</strong>: Trạng thái hội tụ.<br>
+              <em class="text-slate-300">Ý nghĩa:</em> Vị trí các tâm cụm không còn dịch chuyển đáng kể giữa 2 vòng lặp liên tiếp.
+            </span>
+          </span>.
+        </div>
+      </div>
+
+      <!-- KHUNG 3: KHU VỰC PHÁ HỦY THUẬT TOÁN (FAILURE SANDBOX) -->
+      <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-4 flex flex-col gap-3 transition-colors">
+        <div class="border-b border-slate-100 dark:border-slate-800 pb-2 flex items-center justify-between">
+          <h2 class="text-sm font-bold text-rose-800 dark:text-rose-400 uppercase tracking-wide flex items-center gap-1.5">
+            <span>⚠️</span> 3. Kịch Bản Cực Đoan (Failure Sandbox)
+          </h2>
+          <span class="text-[11px] text-slate-400">Xem thuật toán bị bẫy</span>
+        </div>
+
+        <!-- 3 Nút Preset phá hủy -->
+        <div class="grid grid-cols-3 gap-2">
+          <button id="btn-trap-init" class="px-2 py-2 text-[11px] font-semibold text-center rounded-lg bg-rose-50 text-rose-800 hover:bg-rose-100 dark:bg-rose-950/60 dark:text-rose-300 dark:hover:bg-rose-900/60 border border-rose-200 dark:border-rose-900 transition">
+            🪤 Bẫy Khởi Tạo (Local Minima)
+          </button>
+          <button id="btn-trap-outlier" class="px-2 py-2 text-[11px] font-semibold text-center rounded-lg bg-amber-50 text-amber-800 hover:bg-amber-100 dark:bg-amber-950/60 dark:text-amber-300 dark:hover:bg-amber-900/60 border border-amber-200 dark:border-amber-900 transition">
+            🎯 Nhiễu Cực Đoan (Outliers)
+          </button>
+          <button id="btn-trap-imbalance" class="px-2 py-2 text-[11px] font-semibold text-center rounded-lg bg-purple-50 text-purple-800 hover:bg-purple-100 dark:bg-purple-950/60 dark:text-purple-300 dark:hover:bg-purple-900/60 border border-purple-200 dark:border-purple-900 transition">
+            ⚖️ Mật Độ Lệch Pha (Density)
+          </button>
+        </div>
+
+        <!-- Khung giải thích nguyên nhân thất bại -->
+        <div id="sandbox-explanation" class="text-xs text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-950 p-3 rounded-lg border border-slate-200 dark:border-slate-800 leading-relaxed">
+          <em>Bấm vào một trong các kịch bản phía trên để quan sát điểm yếu chí mạng của thuật toán K-Means.</em>
+        </div>
+      </div>
+
+    </section>
+  </main>
+
+  <!-- MODAL CHẾ ĐỘ KIỂM THỬ NHẨM TAY (3x3 AUDIT MODE) -->
+  <div id="audit-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-900 rounded-2xl max-w-2xl w-full p-6 shadow-2xl border border-slate-200 dark:border-slate-800 flex flex-col gap-4">
+      <div class="flex items-center justify-between border-b dark:border-slate-800 pb-3">
+        <div class="flex items-center gap-2">
+          <span class="text-xl">🧪</span>
+          <div>
+            <h3 class="text-base font-bold text-slate-900 dark:text-white">3x3 Toy Dataset Audit Mode</h3>
+            <p class="text-xs text-slate-500 dark:text-slate-400">Kiểm tra tính chuẩn xác của phép toán trong 15 giây nhẩm tay</p>
+          </div>
+        </div>
+        <button id="btn-close-audit" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 font-bold text-xl px-2">&times;</button>
+      </div>
+
+      <div class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+        Tập dữ liệu tối giản gồm đúng <strong>3 điểm nguyên</strong> và <strong>2 tâm cụm</strong>:
+        <ul class="list-disc list-inside mt-1 font-mono text-[11px] text-slate-800 dark:text-slate-200">
+          <li>Điểm $P_1 = (100, 100)$, $P_2 = (120, 140)$, $P_3 = (500, 300)$</li>
+          <li>Tâm ban đầu: $\mu_1 = (80, 80)$, $\mu_2 = (450, 250)$</li>
+        </ul>
+      </div>
+
+      <div class="bg-slate-900 text-emerald-400 p-3.5 rounded-xl font-mono text-[11px] leading-relaxed overflow-x-auto max-h-48" id="audit-calc-log">
+        [Nhẩm tay Vòng 1]:
+        - d(P1, μ1) = sqrt((100-80)^2 + (100-80)^2) = sqrt(800) ≈ 28.28  -> Gán vào Cụm 1
+        - d(P2, μ1) = sqrt((120-80)^2 + (140-80)^2) = sqrt(5200) ≈ 72.11 -> Gán vào Cụm 1
+        - d(P3, μ2) = sqrt((500-450)^2 + (300-250)^2) = sqrt(5000) ≈ 70.71 -> Gán vào Cụm 2
+        
+        [Cập nhật Tâm mới]:
+        - μ1 mới = Trung bình(P1, P2) = ((100+120)/2, (100+140)/2) = (110, 120)
+        - μ2 mới = P3 = (500, 300)
+      </div>
+
+      <div class="flex justify-end gap-3 pt-2 border-t dark:border-slate-800">
+        <button id="btn-cancel-audit" class="px-4 py-2 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition">
+          Đóng
+        </button>
+        <button id="btn-apply-audit" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg transition">
+          Nạp Toy Dataset này vào Canvas
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- JAVASCRIPT THUẦN: 100% TOÁN HỌC THỰC TẾ -->
+  <script>
+    // Logic Dark Mode Toggle
+    const themeToggleBtn = document.getElementById('theme-toggle');
+    const sunIcon = document.getElementById('theme-toggle-sun');
+    const moonIcon = document.getElementById('theme-toggle-moon');
+
+    function updateIcons() {
+      if (document.documentElement.classList.contains('dark')) {
+        sunIcon.classList.remove('hidden');
+        moonIcon.classList.add('hidden');
+      } else {
+        sunIcon.classList.add('hidden');
+        moonIcon.classList.remove('hidden');
+      }
+    }
+
+    updateIcons();
+
+    themeToggleBtn.addEventListener('click', () => {
+      const isDark = document.documentElement.classList.toggle('dark');
+      localStorage.setItem('theme', isDark ? 'dark' : 'light');
+      updateIcons();
+    });
+
+    // Bảng màu chuẩn đồng bộ cho các Cụm (Canvas ↔ KaTeX ↔ Metrics)
+    const CLUSTER_COLORS = [
+      { fill: 'rgba(239, 68, 68, 0.75)', stroke: '#ef4444', name: 'Đỏ', hex: '#ef4444' },
+      { fill: 'rgba(59, 130, 246, 0.75)', stroke: '#3b82f6', name: 'Xanh dương', hex: '#3b82f6' },
+      { fill: 'rgba(16, 185, 129, 0.75)', stroke: '#10b981', name: 'Xanh lá', hex: '#10b981' },
+      { fill: 'rgba(245, 158, 11, 0.75)', stroke: '#f59e0b', name: 'Vàng cam', hex: '#f59e0b' }
+    ];
+
+    // State của thuật toán
+    let points = [];
+    let centroids = [];
+    let K = 3;
+    let currentIteration = 0;
+    let currentPhase = 'ASSIGN'; // 'ASSIGN' hoặc 'UPDATE'
+    let isRunning = false;
+    let timerId = null;
+    let draggedCentroidIndex = -1;
+
+    const canvas = document.getElementById('cluster-canvas');
+    const ctx = canvas.getContext('2d');
+
+    // Khởi tạo tập dữ liệu ngẫu nhiên theo cụm thực tế (Gaussian-like blobs)
+    function generateDataset(numBlobs = 3, pointsPerBlob = 30) {
+      points = [];
+      const centers = [
+        { x: 180, y: 140 },
+        { x: 450, y: 160 },
+        { x: 300, y: 320 },
+        { x: 150, y: 330 }
+      ];
+
+      for (let b = 0; b < numBlobs; b++) {
+        const center = centers[b % centers.length];
+        for (let i = 0; i < pointsPerBlob; i++) {
+          const angle = Math.random() * Math.PI * 2;
+          const radius = Math.random() * 55;
+          points.push({
+            x: Math.max(30, Math.min(canvas.width - 30, center.x + Math.cos(angle) * radius)),
+            y: Math.max(30, Math.min(canvas.height - 30, center.y + Math.sin(angle) * radius)),
+            cluster: -1
+          });
+        }
+      }
+    }
+
+    // Khởi tạo các Centroid ngẫu nhiên trong không gian dữ liệu
+    function initCentroids() {
+      centroids = [];
+      for (let k = 0; k < K; k++) {
+        const randomPoint = points[Math.floor(Math.random() * points.length)];
+        centroids.push({
+          x: randomPoint.x + (Math.random() - 0.5) * 40,
+          y: randomPoint.y + (Math.random() - 0.5) * 40
+        });
+      }
+      currentIteration = 0;
+      currentPhase = 'ASSIGN';
+      updateUI();
+      draw();
+    }
+
+    // TOÁN HỌC THỰC SỰ: Tính khoảng cách Euclid bình phương
+    function distSq(p1, p2) {
+      const dx = p1.x - p2.x;
+      const dy = p1.y - p2.y;
+      return dx * dx + dy * dy;
+    }
+
+    // BƯỚC 1: Gán mỗi điểm vào tâm gần nhất (Assignment Step)
+    function assignPointsToClusters() {
+      let changed = false;
+      points.forEach(p => {
+        let minDist = Infinity;
+        let bestCluster = -1;
+        centroids.forEach((c, idx) => {
+          const d = distSq(p, c);
+          if (d < minDist) {
+            minDist = d;
+            bestCluster = idx;
+          }
+        });
+        if (p.cluster !== bestCluster) {
+          changed = true;
+          p.cluster = bestCluster;
+        }
+      });
+      return changed;
+    }
+
+    // BƯỚC 2: Cập nhật tọa độ tâm bằng trung bình cộng (Update Step)
+    function updateCentroids() {
+      let maxMovement = 0;
+      centroids.forEach((c, idx) => {
+        const clusterPoints = points.filter(p => p.cluster === idx);
+        if (clusterPoints.length > 0) {
+          const sumX = clusterPoints.reduce((acc, p) => acc + p.x, 0);
+          const sumY = clusterPoints.reduce((acc, p) => acc + p.y, 0);
+          const newX = sumX / clusterPoints.length;
+          const newY = sumY / clusterPoints.length;
+          
+          const shift = Math.sqrt(distSq(c, { x: newX, y: newY }));
+          if (shift > maxMovement) maxMovement = shift;
+
+          c.x = newX;
+          c.y = newY;
+        }
+      });
+      return maxMovement;
+    }
+
+    // TÍNH HÀM MẤT MÁT WCSS (Within-Cluster Sum of Squares) THẬT
+    function calculateWCSS() {
+      let total = 0;
+      points.forEach(p => {
+        if (p.cluster >= 0 && p.cluster < centroids.length) {
+          total += distSq(p, centroids[p.cluster]);
+        }
+      });
+      return total;
+    }
+
+    // CHẠY TỪNG BƯỚC (STEP-BY-STEP)
+    function runNextStep() {
+      if (currentPhase === 'ASSIGN') {
+        const changed = assignPointsToClusters();
+        currentPhase = 'UPDATE';
+        document.getElementById('step-badge').innerText = `Vòng lặp ${currentIteration + 1}: Đã gán nhãn cụm`;
+      } else {
+        const shift = updateCentroids();
+        currentIteration++;
+        currentPhase = 'ASSIGN';
+        document.getElementById('step-badge').innerText = `Vòng lặp ${currentIteration}: Đã cập nhật tọa độ tâm`;
+        
+        if (shift < 0.1 && currentIteration > 0) {
+          document.getElementById('step-badge').innerText = `✅ Đã hội tụ hoàn toàn tại vòng ${currentIteration}!`;
+          if (isRunning) togglePlay();
+        }
+      }
+      updateUI();
+      draw();
+    }
+
+    // Cập nhật giao diện số liệu
+    function updateUI() {
+      const wcss = calculateWCSS();
+      document.getElementById('metric-inertia').innerText = wcss.toLocaleString('vi-VN', { maximumFractionDigits: 1 });
+
+      const coordsBox = document.getElementById('centroid-coords-box');
+      coordsBox.innerHTML = '';
+      centroids.forEach((c, idx) => {
+        const count = points.filter(p => p.cluster === idx).length;
+        const col = CLUSTER_COLORS[idx % CLUSTER_COLORS.length];
+        const row = document.createElement('div');
+        row.className = 'flex items-center justify-between text-xs font-mono';
+        row.innerHTML = `
+          <div class="flex items-center gap-1.5">
+            <span class="w-3 h-3 rounded-full inline-block" style="background-color: ${col.hex}"></span>
+            <span class="font-bold" style="color: ${col.stroke}">Tâm μ${idx + 1}:</span>
+          </div>
+          <span class="text-slate-700 dark:text-slate-300">(${Math.round(c.x)}, ${Math.round(c.y)}) — <strong class="text-slate-900 dark:text-white">${count} điểm</strong></span>
+        `;
+        coordsBox.appendChild(row);
+      });
+    }
+
+    // VẼ ĐỒ HỌA TRÊN CANVAS
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // 1. Vẽ các đường nối từ mỗi điểm về tâm cụm tương ứng
+      if (points.some(p => p.cluster >= 0)) {
+        points.forEach(p => {
+          if (p.cluster >= 0 && p.cluster < centroids.length) {
+            const col = CLUSTER_COLORS[p.cluster % CLUSTER_COLORS.length];
+            ctx.beginPath();
+            ctx.moveTo(p.x, p.y);
+            ctx.lineTo(centroids[p.cluster].x, centroids[p.cluster].y);
+            ctx.strokeStyle = col.hex + '25'; // Trong suốt
+            ctx.lineWidth = 1;
+            ctx.stroke();
+          }
+        });
+      }
+
+      // 2. Vẽ các điểm dữ liệu
+      points.forEach(p => {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 4.5, 0, Math.PI * 2);
+        if (p.cluster >= 0 && p.cluster < centroids.length) {
+          const col = CLUSTER_COLORS[p.cluster % CLUSTER_COLORS.length];
+          ctx.fillStyle = col.fill;
+          ctx.strokeStyle = col.stroke;
+        } else {
+          ctx.fillStyle = '#64748b';
+          ctx.strokeStyle = '#94a3b8';
+        }
+        ctx.lineWidth = 1.5;
+        ctx.fill();
+        ctx.stroke();
+      });
+
+      // 3. Vẽ các Centroids nổi bật
+      centroids.forEach((c, idx) => {
+        const col = CLUSTER_COLORS[idx % CLUSTER_COLORS.length];
+        
+        // Vòng halo
+        ctx.beginPath();
+        ctx.arc(c.x, c.y, 16, 0, Math.PI * 2);
+        ctx.fillStyle = col.hex + '33';
+        ctx.fill();
+
+        // Hình tròn tâm
+        ctx.beginPath();
+        ctx.arc(c.x, c.y, 8, 0, Math.PI * 2);
+        ctx.fillStyle = '#ffffff';
+        ctx.strokeStyle = col.stroke;
+        ctx.lineWidth = 3;
+        ctx.fill();
+        ctx.stroke();
+
+        // Dấu thập trung tâm
+        ctx.beginPath();
+        ctx.moveTo(c.x - 4, c.y);
+        ctx.lineTo(c.x + 4, c.y);
+        ctx.moveTo(c.x - 4, c.y);
+        ctx.lineTo(c.x + 4, c.y);
+        ctx.strokeStyle = col.stroke;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // Nhãn tâm μ_k
+        ctx.fillStyle = '#f8fafc';
+        ctx.font = 'bold 11px JetBrains Mono';
+        ctx.fillText(`μ${idx + 1}`, c.x + 12, c.y - 10);
+      });
+    }
+
+    // TƯƠNG TÁC CHUỘT
+    canvas.addEventListener('mousedown', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const mouseX = (e.clientX - rect.left) * (canvas.width / rect.width);
+      const mouseY = (e.clientY - rect.top) * (canvas.height / rect.height);
+
+      draggedCentroidIndex = centroids.findIndex(c => Math.hypot(c.x - mouseX, c.y - mouseY) < 20);
+      
+      if (draggedCentroidIndex === -1) {
+        points.push({ x: mouseX, y: mouseY, cluster: -1 });
+        currentPhase = 'ASSIGN';
+        document.getElementById('step-badge').innerText = `Đã thêm điểm mới tại (${Math.round(mouseX)}, ${Math.round(mouseY)})`;
+        updateUI();
+        draw();
+      }
+    });
+
+    window.addEventListener('mousemove', (e) => {
+      if (draggedCentroidIndex !== -1) {
+        const rect = canvas.getBoundingClientRect();
+        const mouseX = Math.max(10, Math.min(canvas.width - 10, (e.clientX - rect.left) * (canvas.width / rect.width)));
+        const mouseY = Math.max(10, Math.min(canvas.height - 10, (e.clientY - rect.top) * (canvas.height / rect.height)));
+        
+        centroids[draggedCentroidIndex].x = mouseX;
+        centroids[draggedCentroidIndex].y = mouseY;
+        currentPhase = 'ASSIGN';
+        updateUI();
+        draw();
+      }
+    });
+
+    window.addEventListener('mouseup', () => {
+      draggedCentroidIndex = -1;
+    });
+
+    // PLAY / PAUSE
+    function togglePlay() {
+      isRunning = !isRunning;
+      const playIcon = document.getElementById('play-icon');
+      const playText = document.getElementById('play-text');
+      const btnPlay = document.getElementById('btn-play');
+
+      if (isRunning) {
+        playIcon.innerText = '⏸';
+        playText.innerText = 'Tạm Dừng';
+        btnPlay.classList.replace('bg-blue-600', 'bg-amber-600');
+        btnPlay.classList.replace('hover:bg-blue-700', 'hover:bg-amber-700');
+        const speed = 1600 - parseInt(document.getElementById('slider-speed').value);
+        timerId = setInterval(runNextStep, speed);
+      } else {
+        playIcon.innerText = '▶';
+        playText.innerText = 'Chạy Tự Động';
+        btnPlay.classList.replace('bg-amber-600', 'bg-blue-600');
+        btnPlay.classList.replace('hover:bg-amber-700', 'hover:bg-blue-700');
+        clearInterval(timerId);
+      }
+    }
+
+    document.getElementById('btn-play').addEventListener('click', togglePlay);
+    document.getElementById('btn-step').addEventListener('click', runNextStep);
+    document.getElementById('btn-reset').addEventListener('click', () => {
+      if (isRunning) togglePlay();
+      generateDataset(K, 30);
+      initCentroids();
+    });
+
+    document.getElementById('select-k').addEventListener('change', (e) => {
+      if (isRunning) togglePlay();
+      K = parseInt(e.target.value);
+      generateDataset(K, 30);
+      initCentroids();
+    });
+
+    // FAILURE SANDBOX
+    const explanationBox = document.getElementById('sandbox-explanation');
+
+    document.getElementById('btn-trap-init').addEventListener('click', () => {
+      if (isRunning) togglePlay();
+      centroids = [
+        { x: 40, y: 40 },
+        { x: 60, y: 40 },
+        { x: 50, y: 70 }
+      ];
+      K = 3;
+      document.getElementById('select-k').value = "3";
+      currentIteration = 0;
+      currentPhase = 'ASSIGN';
+      document.getElementById('step-badge').innerText = `⚠️ Kịch bản: Bẫy khởi tạo xấu`;
+      updateUI();
+      draw();
+
+      explanationBox.innerHTML = `
+        <strong class="text-rose-600 dark:text-rose-400">💥 Hiện tượng Bẫy Cực Tiểu Địa Phương (Local Minima Trap):</strong><br>
+        Các tâm cụm bị xếp dồn vào góc xa. Khi chạy, các cụm ở xa có thể trở thành cụm rỗng hoặc hội tụ về một nghiệm phụ thuộc hoàn toàn vào vị trí ban đầu.<br>
+        <span class="text-blue-600 dark:text-blue-400 font-semibold">Giải pháp thực tế:</span> Sử dụng thuật toán <strong>K-Means++</strong> hoặc tham số <code>n_init=10</code>.
+      `;
+    });
+
+    document.getElementById('btn-trap-outlier').addEventListener('click', () => {
+      if (isRunning) togglePlay();
+      points.push({ x: 620, y: 400, cluster: -1 });
+      document.getElementById('step-badge').innerText = `⚠️ Kịch bản: Xuất hiện điểm Outlier (620, 400)`;
+      updateUI();
+      draw();
+
+      explanationBox.innerHTML = `
+        <strong class="text-amber-600 dark:text-amber-400">🎯 Điểm Ngoại Lai Cực Đoan (Outlier Sensitivity):</strong><br>
+        Do K-Means sử dụng khoảng cách Euclid bình phương $(\|x - \mu\|^2)$ để tính tâm bằng trung bình cộng, chỉ cần một điểm ngoại lai nằm rất xa cũng sẽ <strong>kéo lệch hoàn toàn tâm cụm</strong> ra khỏi mật độ thật của dữ liệu.<br>
+        <span class="text-blue-600 dark:text-blue-400 font-semibold">Giải pháp thực tế:</span> Dùng <strong>K-Medoids</strong> hoặc <strong>DBSCAN</strong>.
+      `;
+    });
+
+    document.getElementById('btn-trap-imbalance').addEventListener('click', () => {
+      if (isRunning) togglePlay();
+      points = [];
+      for (let i = 0; i < 60; i++) {
+        const r = Math.random() * 25;
+        const a = Math.random() * Math.PI * 2;
+        points.push({ x: 200 + Math.cos(a) * r, y: 200 + Math.sin(a) * r, cluster: -1 });
+      }
+      for (let i = 0; i < 40; i++) {
+        const r = Math.random() * 120;
+        const a = Math.random() * Math.PI * 2;
+        points.push({ x: 450 + Math.cos(a) * r, y: 220 + Math.sin(a) * r, cluster: -1 });
+      }
+      K = 2;
+      document.getElementById('select-k').value = "2";
+      initCentroids();
+
+      explanationBox.innerHTML = `
+        <strong class="text-purple-600 dark:text-purple-400">⚖️ Giả định Cầu & Mật Độ Đồng Đều Bị Phá Vỡ:</strong><br>
+        K-Means ngầm giả định các cụm có hình cầu và kích thước phương sai tương đương nhau. Khi một cụm quá lớn và loãng nằm cạnh một cụm nhỏ cô đặc, K-Means sẽ thường xuyên <strong>cắt đôi cụm lớn</strong>.<br>
+        <span class="text-blue-600 dark:text-blue-400 font-semibold">Giải pháp thực tế:</span> Sử dụng <strong>Gaussian Mixture Models (GMM)</strong> hoặc <strong>HDBSCAN</strong>.
+      `;
+    });
+
+    // 3x3 AUDIT MODE
+    const modal = document.getElementById('audit-modal');
+    document.getElementById('btn-audit').addEventListener('click', () => modal.classList.remove('hidden'));
+    document.getElementById('btn-close-audit').addEventListener('click', () => modal.classList.add('hidden'));
+    document.getElementById('btn-cancel-audit').addEventListener('click', () => modal.classList.add('hidden'));
+
+    document.getElementById('btn-apply-audit').addEventListener('click', () => {
+      if (isRunning) togglePlay();
+      modal.classList.add('hidden');
+      
+      points = [
+        { x: 100, y: 100, cluster: -1 },
+        { x: 120, y: 140, cluster: -1 },
+        { x: 500, y: 300, cluster: -1 }
+      ];
+      centroids = [
+        { x: 80, y: 80 },
+        { x: 450, y: 250 }
+      ];
+      K = 2;
+      document.getElementById('select-k').value = "2";
+      currentIteration = 0;
+      currentPhase = 'ASSIGN';
+      document.getElementById('step-badge').innerText = `🧪 Chế độ 3x3 Audit Mode: 3 Điểm Dữ Liệu Tối Giản`;
+      updateUI();
+      draw();
+    });
+
+    window.addEventListener('DOMContentLoaded', () => {
+      generateDataset(K, 30);
+      initCentroids();
+    });
+  </script>
+</body>
+</html>

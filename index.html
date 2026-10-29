@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI & Machine Learning Interactive Visualizer | Thư viện Mô phỏng Thuật toán Tương tác</title>
+  
+  <!-- Tailwind CSS CDN với Dark Mode Class -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class'
+    }
+  </script>
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .mono { font-family: 'JetBrains Mono', monospace; }
+  </style>
+
+  <!-- Script khôi phục Theme từ LocalStorage ngay khi tải trang -->
+  <script>
+    if (localStorage.getItem('theme') === 'dark' || (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  </script>
+</head>
+<body class="bg-slate-50 text-slate-800 dark:bg-slate-950 dark:text-slate-100 antialiased min-h-screen flex flex-col transition-colors duration-200">
+
+  <!-- TOP BAR & HERO SECTION -->
+  <header class="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 transition-colors">
+    <!-- Top Navigation -->
+    <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between border-b border-slate-100 dark:border-slate-800/60">
+      <div class="flex items-center gap-3">
+        <span class="text-xs font-bold px-2.5 py-1 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300">
+          ⚡ Interactive AI/ML Explorer
+        </span>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <!-- Nút sang trang Tri thức tham khảo -->
+        <a href="references.html" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 rounded-xl transition border border-slate-200 dark:border-slate-700">
+          <span>📚 Tri Thức Tham Khảo</span>
+          <span class="text-[10px] px-1.5 py-0.2 rounded bg-amber-500 text-white font-bold">7 Repos</span>
+        </a>
+
+        <!-- NÚT CÔNG TẮC DARK / LIGHT MODE GÓC PHẢI TRÊN CÙNG -->
+        <button id="theme-toggle" class="p-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 transition" 
+                title="Chuyển đổi giao diện Sáng / Tối" aria-label="Toggle Theme">
+          <!-- Sun Icon (hiện khi Dark Mode) -->
+          <svg id="theme-toggle-sun" class="w-5 h-5 hidden" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" fill-rule="evenodd" clip-rule="evenodd"/>
+          </svg>
+          <!-- Moon Icon (hiện khi Light Mode) -->
+          <svg id="theme-toggle-moon" class="w-5 h-5 hidden" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Hero Content -->
+    <div class="max-w-6xl mx-auto px-6 py-10">
+      <h1 class="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+        Khám Phá Thuật Toán Trí Tuệ Nhân Tạo Qua Trực Quan Hóa
+      </h1>
+      <p class="mt-3 text-base text-slate-600 dark:text-slate-400 max-w-3xl leading-relaxed">
+        Thư viện tương tác học tập chuyên sâu: <strong>100% Toán học thực tế</strong>, kiến trúc 3 khung đồng bộ, 
+        công thức KaTeX thế số trực tiếp, cơ chế <span class="text-blue-600 dark:text-blue-400 font-semibold">Hover-to-Trace</span> và chế độ kiểm thử nhẩm tay <span class="text-emerald-600 dark:text-emerald-400 font-semibold">3x3 Audit Mode</span>.
+      </p>
+
+      <!-- Key Pillars -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8 pt-8 border-t border-slate-100 dark:border-slate-800">
+        <div class="bg-slate-50 dark:bg-slate-950/60 p-3.5 rounded-xl border border-slate-200 dark:border-slate-800">
+          <div class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Nguyên Tắc</div>
+          <div class="text-sm font-bold text-slate-900 dark:text-white mt-1">Không Giả Lập Toán</div>
+          <div class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">JS thuần tính toán đạo hàm & ma trận thật</div>
+        </div>
+        <div class="bg-slate-50 dark:bg-slate-950/60 p-3.5 rounded-xl border border-slate-200 dark:border-slate-800">
+          <div class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Kiến Trúc</div>
+          <div class="text-sm font-bold text-slate-900 dark:text-white mt-1">3 Khung Đồng Bộ</div>
+          <div class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Canvas đồ họa ↔ KaTeX ↔ Failure Sandbox</div>
+        </div>
+        <div class="bg-slate-50 dark:bg-slate-950/60 p-3.5 rounded-xl border border-slate-200 dark:border-slate-800">
+          <div class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Kiểm Chứng</div>
+          <div class="text-sm font-bold text-slate-900 dark:text-white mt-1">3x3 Audit Mode</div>
+          <div class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Dữ liệu tối giản tự nhẩm tay 15 giây</div>
+        </div>
+        <div class="bg-slate-50 dark:bg-slate-950/60 p-3.5 rounded-xl border border-slate-200 dark:border-slate-800">
+          <div class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Độ Tin Cậy</div>
+          <div class="text-sm font-bold text-slate-900 dark:text-white mt-1">1-Click Verification</div>
+          <div class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Nút bấm đối chiếu trực tiếp Repo chuẩn vàng</div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- CONTENT CONTAINER -->
+  <main class="flex-1 max-w-6xl mx-auto px-6 py-10 w-full">
+    
+    <!-- Filter Tabs & Search -->
+    <div class="flex flex-col sm:flex-row items-center justify-between gap-4 mb-8">
+      <div class="flex flex-wrap items-center gap-1.5 p-1 bg-slate-200/70 dark:bg-slate-900 rounded-xl" id="topic-filters">
+        <button class="filter-btn active px-3.5 py-1.5 text-xs font-semibold rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm transition" data-filter="all">Tất Cả</button>
+        <button class="filter-btn px-3.5 py-1.5 text-xs font-medium rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition" data-filter="01-math">01. Toán Nền Tảng</button>
+        <button class="filter-btn px-3.5 py-1.5 text-xs font-medium rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition" data-filter="02-ml">02. Classical ML</button>
+        <button class="filter-btn px-3.5 py-1.5 text-xs font-medium rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition" data-filter="03-nn">03. Neural Networks</button>
+        <button class="filter-btn px-3.5 py-1.5 text-xs font-medium rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition" data-filter="04-cv">04. Computer Vision</button>
+        <button class="filter-btn px-3.5 py-1.5 text-xs font-medium rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition" data-filter="05-nlp">05. NLP & Transformers</button>
+      </div>
+
+      <input type="text" id="search-input" placeholder="Tìm kiếm thuật toán (K-Means, CNN, Attention...)" 
+             class="w-full sm:w-72 px-3.5 py-2 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-800 dark:text-slate-100">
+    </div>
+
+    <!-- CARDS GRID -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="algorithm-cards">
+      
+      <!-- Card: K-Means Clustering -->
+      <div class="algo-card bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md hover:border-blue-400 dark:hover:border-blue-500 transition-all flex flex-col p-5" data-category="02-ml">
+        <div class="flex items-center justify-between mb-3">
+          <span class="text-xs font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">02. Classical ML</span>
+          <span class="text-xs font-semibold px-2 py-0.5 rounded bg-blue-50 text-blue-600 dark:bg-blue-950 dark:text-blue-300">Sẵn sàng</span>
+        </div>
+        <h3 class="text-base font-bold text-slate-900 dark:text-white">K-Means Clustering</h3>
+        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1.5 leading-relaxed flex-1">
+          Thuật toán phân cụm không giám sát: Tự do kéo thả Centroid, vẽ phân vùng Voronoi, cập nhật khoảng cách Euclid và chứng kiến hội tụ.
+        </p>
+        <div class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+          <span class="text-[11px] text-slate-400">Tham chiếu: <strong>trekhleb/homemade-ml</strong></span>
+          <a href="simulations/02-classical-ml/kmeans-clustering.html" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg transition">
+            Khám phá →
+          </a>
+        </div>
+      </div>
+
+      <!-- Card: Gradient Descent -->
+      <div class="algo-card bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md hover:border-blue-400 dark:hover:border-blue-500 transition-all flex flex-col p-5" data-category="01-math">
+        <div class="flex items-center justify-between mb-3">
+          <span class="text-xs font-bold px-2 py-0.5 rounded bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-300">01. Toán Nền Tảng</span>
+          <span class="text-xs font-medium text-slate-400">Đang chuẩn bị</span>
+        </div>
+        <h3 class="text-base font-bold text-slate-900 dark:text-white">Gradient Descent & Contour Map</h3>
+        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1.5 leading-relaxed flex-1">
+          Tối ưu hóa hàm số đa biến qua đường đồng mức (Contours). Minh họa hiện tượng Exploding Gradient khi Learning Rate quá lớn.
+        </p>
+        <div class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+          <span class="text-[11px] text-slate-400">Tham chiếu: <strong>seeingtheory / Distill</strong></span>
+          <span class="text-xs font-medium text-slate-400">Sắp ra mắt</span>
+        </div>
+      </div>
+
+      <!-- Card: 2D Convolution & Hover-to-Trace -->
+      <div class="algo-card bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md hover:border-blue-400 dark:hover:border-blue-500 transition-all flex flex-col p-5" data-category="04-cv">
+        <div class="flex items-center justify-between mb-3">
+          <span class="text-xs font-bold px-2 py-0.5 rounded bg-indigo-100 text-indigo-800 dark:bg-indigo-950 dark:text-indigo-300">04. Computer Vision</span>
+          <span class="text-xs font-medium text-slate-400">Đang chuẩn bị</span>
+        </div>
+        <h3 class="text-base font-bold text-slate-900 dark:text-white">2D Convolution & Hover-to-Trace</h3>
+        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1.5 leading-relaxed flex-1">
+          Cơ chế cửa sổ trượt (Kernel/Filter). Di chuột vào ô ma trận Feature Map để sáng đúng Receptive Field đầu vào.
+        </p>
+        <div class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+          <span class="text-[11px] text-slate-400">Tham chiếu: <strong>poloclub/cnn-explainer</strong></span>
+          <span class="text-xs font-medium text-slate-400">Sắp ra mắt</span>
+        </div>
+      </div>
+
+      <!-- Card: MLP & Backpropagation -->
+      <div class="algo-card bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md hover:border-blue-400 dark:hover:border-blue-500 transition-all flex flex-col p-5" data-category="03-nn">
+        <div class="flex items-center justify-between mb-3">
+          <span class="text-xs font-bold px-2 py-0.5 rounded bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300">03. Neural Networks</span>
+          <span class="text-xs font-medium text-slate-400">Đang chuẩn bị</span>
+        </div>
+        <h3 class="text-base font-bold text-slate-900 dark:text-white">MLP & Backpropagation Live Derivatives</h3>
+        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1.5 leading-relaxed flex-1">
+          Lan truyền ngược trên mạng nhiều tầng: Độ dày dây phản ánh trọng số, biểu diễn chuỗi đạo hàm Chain Rule theo thời gian thực.
+        </p>
+        <div class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+          <span class="text-[11px] text-slate-400">Tham chiếu: <strong>tensorflow/playground</strong></span>
+          <span class="text-xs font-medium text-slate-400">Sắp ra mắt</span>
+        </div>
+      </div>
+
+      <!-- Card: Self-Attention & QKV -->
+      <div class="algo-card bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md hover:border-blue-400 dark:hover:border-blue-500 transition-all flex flex-col p-5" data-category="05-nlp">
+        <div class="flex items-center justify-between mb-3">
+          <span class="text-xs font-bold px-2 py-0.5 rounded bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300">05. NLP & Transformers</span>
+          <span class="text-xs font-medium text-slate-400">Đang chuẩn bị</span>
+        </div>
+        <h3 class="text-base font-bold text-slate-900 dark:text-white">Scaled Dot-Product Self-Attention</h3>
+        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1.5 leading-relaxed flex-1">
+          Cơ chế tự chú ý: Ma trận Q, K, V, tích vô hướng chia căn d_k, và thanh trượt Temperature tác động lên phân phối Softmax.
+        </p>
+        <div class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+          <span class="text-[11px] text-slate-400">Tham chiếu: <strong>poloclub/transformer-explainer</strong></span>
+          <span class="text-xs font-medium text-slate-400">Sắp ra mắt</span>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 py-6 text-center text-xs text-slate-500 dark:text-slate-400 transition-colors">
+    <p>Dự án được xây dựng tuân thủ quy chuẩn kỹ thuật <a href="spec/ai_interactive_visualizer_spec.md" class="text-blue-600 dark:text-blue-400 font-semibold hover:underline">ai_interactive_visualizer_spec.md</a></p>
+    <p class="mt-1">Kế thừa chuẩn mực từ <em>Distill.pub, Polo Club of Data Science, TensorFlow Playground & Karpathy ConvNetJS</em>.</p>
+  </footer>
+
+  <!-- SCRIPT THEME TOGGLE & FILTER -->
+  <script>
+    // Logic Dark Mode Toggle
+    const themeToggleBtn = document.getElementById('theme-toggle');
+    const sunIcon = document.getElementById('theme-toggle-sun');
+    const moonIcon = document.getElementById('theme-toggle-moon');
+
+    function updateIcons() {
+      if (document.documentElement.classList.contains('dark')) {
+        sunIcon.classList.remove('hidden');
+        moonIcon.classList.add('hidden');
+      } else {
+        sunIcon.classList.add('hidden');
+        moonIcon.classList.remove('hidden');
+      }
+    }
+
+    updateIcons();
+
+    themeToggleBtn.addEventListener('click', () => {
+      const isDark = document.documentElement.classList.toggle('dark');
+      localStorage.setItem('theme', isDark ? 'dark' : 'light');
+      updateIcons();
+    });
+
+    // Filter Buttons
+    const filterButtons = document.querySelectorAll('.filter-btn');
+    const cards = document.querySelectorAll('.algo-card');
+    const searchInput = document.getElementById('search-input');
+
+    filterButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        filterButtons.forEach(b => {
+          b.classList.remove('bg-white', 'dark:bg-slate-800', 'text-slate-900', 'dark:text-white', 'shadow-sm', 'font-semibold');
+          b.classList.add('text-slate-600', 'dark:text-slate-400', 'font-medium');
+        });
+        btn.classList.add('bg-white', 'dark:bg-slate-800', 'text-slate-900', 'dark:text-white', 'shadow-sm', 'font-semibold');
+        btn.classList.remove('text-slate-600', 'dark:text-slate-400', 'font-medium');
+
+        const filter = btn.getAttribute('data-filter');
+        cards.forEach(card => {
+          const cat = card.getAttribute('data-category');
+          if (filter === 'all' || cat === filter) {
+            card.style.display = 'flex';
+          } else {
+            card.style.display = 'none';
+          }
+        });
+      });
+    });
+
+    searchInput.addEventListener('input', (e) => {
+      const term = e.target.value.toLowerCase();
+      cards.forEach(card => {
+        const text = card.innerText.toLowerCase();
+        card.style.display = text.includes(term) ? 'flex' : 'none';
+      });
+    });
+  </script>
+</body>
+</html>
