@@ -1,7 +1,10 @@
-# 🧠 Interactive AI/ML Algorithm Visualizer
+# 🧠 Neural Odyssey AI (Interactive AI/ML Algorithm Visualizer)
 
-> Thư viện mô phỏng & trực quan hóa thuật toán Trí Tuệ Nhân Tạo / Machine Learning tương tác cao trên nền tảng Web tĩnh. 
-> Xây dựng theo phong cách học thuật từ **Distill.pub**, **3Blue1Brown**, **CNN Explainer** và **TensorFlow Playground**.
+> ⚡ **Live Demo (GitHub Pages):** [https://proplasma.github.io/Neural-Odyssey-AI/](https://proplasma.github.io/Neural-Odyssey-AI/)  
+> 🔗 **GitHub Repository:** [https://github.com/Proplasma/Neural-Odyssey-AI](https://github.com/Proplasma/Neural-Odyssey-AI)
+
+Thư viện mô phỏng & trực quan hóa thuật toán Trí Tuệ Nhân Tạo / Machine Learning tương tác cao trên nền tảng Web tĩnh. 
+Xây dựng theo phong cách học thuật từ **Distill.pub**, **3Blue1Brown**, **CNN Explainer** và **TensorFlow Playground**.
 
 ---
 
