@@ -1,11 +1,11 @@
 /**
- * Neural Odyssey AI - Resource & Video Lab Manager (Advanced Edition)
+ * Neural Odyssey AI - Resource & Personal Notebook Manager (Master Edition)
  * Tích hợp:
- * 1. File System Access API: Gắn kết & Tự động ghi file JSON trực tiếp vào folder ổ cứng.
- * 2. GitHub REST API Direct Sync: 1-Click đồng bộ tạo Git commit thẳng lên repo.
- * 3. Smart Unsynced Tracker: Cảnh báo nhắc nhẹ khi có ghi chú mới chưa đẩy lên GitHub.
- * 4. Picture-in-Picture (PiP): Cửa sổ video nổi kéo thả tự do trên màn hình.
- * 5. Auto-Parser YouTube Timestamp & Ghi chú cá nhân.
+ * 1. 📝 Sổ Tay Ghi Chú Cá Nhân (Personal Scratchpad): Tự do gõ note, auto-save theo từng phím, tải file .md.
+ * 2. 🎬 Video Lab & Tư Liệu: Nhúng YouTube, hỗ trợ Cửa Sổ Nổi (PiP), blog cards.
+ * 3. 💾 File System Access API: Gắn kết & ghi file trực tiếp vào folder ổ cứng.
+ * 4. 🚀 GitHub REST API Direct Sync: 1-Click đồng bộ tạo Git commit.
+ * 5. 🟠 Smart Unsynced Tracker: Cảnh báo nhắc nhẹ khi có ghi chú mới chưa đẩy lên GitHub.
  */
 
 class NeuralResourceManager {
@@ -18,26 +18,29 @@ class NeuralResourceManager {
     
     // Khóa lưu trữ cục bộ
     this.storageKey = `neural_odyssey_res_${this.topicId}`;
+    this.notepadKey = `neural_odyssey_notepad_${this.topicId}`;
     this.syncMetaKey = `neural_odyssey_sync_meta_${this.topicId}`;
     this.ghTokenKey = `neural_odyssey_gh_pat`;
 
+    this.activeTab = 'notes'; // 'notes' (Sổ tay cá nhân) hoặc 'videos' (Video Lab)
     this.activeVideo = null;
     this.isPiP = false;
     this.isCollapsed = false;
-    this.fileHandle = null; // File System Access Handle
+    this.fileHandle = null;
 
     this.init();
   }
 
   async init() {
     this.loadCustomResources();
+    this.loadNotepad();
     this.loadSyncMeta();
     this.renderMainStructure();
     this.createFloatingPiPContainer();
     this.bindEvents();
     this.updateSyncBadge();
 
-    // Tự động kích hoạt video đầu tiên nếu có
+    // Kích hoạt video đầu tiên nếu có
     const firstVideo = this.getAllResources().find(r => r.type === 'youtube');
     if (firstVideo) {
       this.playVideo(firstVideo.id, false);
@@ -59,9 +62,28 @@ class NeuralResourceManager {
     try {
       localStorage.setItem(this.storageKey, JSON.stringify(this.customList));
       this.markAsUnsynced();
-      this.autoWriteToLocalFile(); // Tự ghi file ổ cứng nếu đã gắn kết
+      this.autoWriteToLocalFile();
     } catch (e) {
       console.error('Lỗi khi ghi LocalStorage:', e);
+    }
+  }
+
+  loadNotepad() {
+    try {
+      this.notepadContent = localStorage.getItem(this.notepadKey) || '';
+    } catch (e) {
+      this.notepadContent = '';
+    }
+  }
+
+  saveNotepad(content) {
+    try {
+      this.notepadContent = content;
+      localStorage.setItem(this.notepadKey, content);
+      this.markAsUnsynced();
+      this.autoWriteToLocalFile();
+    } catch (e) {
+      console.error('Lỗi khi ghi Notepad:', e);
     }
   }
 
@@ -91,7 +113,15 @@ class NeuralResourceManager {
     return [...this.curatedList, ...this.customList];
   }
 
-  // --- FILE SYSTEM ACCESS API (GHI THẲNG Ổ CỨNG) ---
+  getCombinedData() {
+    return {
+      topicId: this.topicId,
+      personalNotes: this.notepadContent,
+      resources: this.getAllResources()
+    };
+  }
+
+  // --- FILE SYSTEM ACCESS API ---
   async linkLocalFile() {
     try {
       if ('showSaveFilePicker' in window) {
@@ -120,7 +150,7 @@ class NeuralResourceManager {
     if (!this.fileHandle) return;
     try {
       const writable = await this.fileHandle.createWritable();
-      const content = JSON.stringify(this.getAllResources(), null, 2);
+      const content = JSON.stringify(this.getCombinedData(), null, 2);
       await writable.write(content);
       await writable.close();
       this.updateFileStatusBadge(true);
@@ -134,11 +164,11 @@ class NeuralResourceManager {
     const el = document.getElementById('res-file-badge');
     if (!el) return;
     if (linked) {
-      el.className = 'inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700';
+      el.className = 'inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700';
       el.innerHTML = `<span>💾 Đã gắn file ổ cứng</span>`;
-      el.title = 'Mỗi khi bạn ghi chú, file trong ổ cứng sẽ tự động cập nhật ngay lập tức!';
+      el.title = 'Mỗi khi bạn gõ note, file trong ổ cứng sẽ tự động cập nhật ngay lập tức!';
     } else {
-      el.className = 'inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-medium bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400 border border-slate-200 dark:border-slate-700 cursor-pointer hover:bg-slate-200';
+      el.className = 'inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400 border border-slate-200 dark:border-slate-700 cursor-pointer hover:bg-slate-200';
       el.innerHTML = `<span>📁 Gắn kết file ổ cứng</span>`;
       el.title = 'Bấm vào để chọn file JSON trong folder bài học để tự động lưu vào ổ cứng';
     }
@@ -166,7 +196,6 @@ class NeuralResourceManager {
         'Content-Type': 'application/json'
       };
 
-      // 1. Lấy SHA của file hiện tại trên GitHub (nếu đã tồn tại)
       let sha = null;
       try {
         const getRes = await fetch(`${apiUrl}?ref=${branch}`, { headers });
@@ -174,20 +203,16 @@ class NeuralResourceManager {
           const getData = await getRes.json();
           sha = getData.sha;
         }
-      } catch (e) {
-        // File chưa tồn tại trên repo
-      }
+      } catch (e) {}
 
-      // 2. Mã hóa dữ liệu JSON thành Base64
-      const jsonContent = JSON.stringify(this.getAllResources(), null, 2);
+      const jsonContent = JSON.stringify(this.getCombinedData(), null, 2);
       const utf8Bytes = new TextEncoder().encode(jsonContent);
       let binary = '';
       utf8Bytes.forEach(b => binary += String.fromCharCode(b));
       const base64Content = btoa(binary);
 
-      // 3. Gửi lệnh Commit lên GitHub
       const body = {
-        message: `docs: sync notes & videos for ${this.topicId} [via Web UI]`,
+        message: `docs: sync personal notes & videos for ${this.topicId} [via Web UI]`,
         content: base64Content,
         branch: branch
       };
@@ -217,27 +242,25 @@ class NeuralResourceManager {
     }
   }
 
-  // --- CẬP NHẬT CẢNH BÁO NHẮC NHẸ THÔNG MINH ---
+  // --- CẢNH BÁO NHẮC NHẸ THÔNG MINH ---
   updateSyncBadge() {
     const badgeEl = document.getElementById('res-sync-badge');
     const syncBtn = document.getElementById('btn-sync-github');
     if (!badgeEl) return;
 
     if (!this.syncMeta.isSynced) {
-      // Có dữ liệu chưa đồng bộ -> Hiện cảnh báo nhắc nhẹ màu cam nổi bật
-      badgeEl.className = 'inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-900 dark:bg-amber-950 dark:text-amber-200 border border-amber-300 dark:border-amber-700 animate-pulse';
-      badgeEl.innerHTML = `<span>🟠</span> <span>Chưa đồng bộ lên GitHub</span>`;
-      badgeEl.title = 'Bạn đã thêm ghi chú mới trên máy tính này. Bấm nút Đồng Bộ Lên GitHub để lưu vĩnh viễn!';
+      badgeEl.className = 'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-900 dark:bg-amber-950 dark:text-amber-200 border border-amber-300 dark:border-amber-700 animate-pulse';
+      badgeEl.innerHTML = `<span>🟠</span> <span>Chưa sync lên GitHub</span>`;
+      badgeEl.title = 'Bạn có ghi chú mới chưa đồng bộ lên GitHub. Bấm nút Đồng Bộ để lưu vĩnh viễn!';
       
       if (syncBtn) {
         syncBtn.className = 'inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white shadow-md transition transform hover:scale-[1.02]';
       }
     } else {
-      // Đã đồng bộ hoàn toàn -> Màu xanh lá an tâm
-      badgeEl.className = 'inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-800 dark:bg-emerald-950/70 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800';
+      badgeEl.className = 'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-800 dark:bg-emerald-950/70 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800';
       const timeStr = this.syncMeta.lastSyncTime ? new Date(this.syncMeta.lastSyncTime).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) : 'vừa xong';
       badgeEl.innerHTML = `<span>🟢</span> <span>Đã đồng bộ (${timeStr})</span>`;
-      badgeEl.title = 'Toàn bộ tư liệu đã khớp hoàn toàn với GitHub!';
+      badgeEl.title = 'Toàn bộ tư liệu & ghi chú đã khớp hoàn toàn với GitHub!';
 
       if (syncBtn) {
         syncBtn.className = 'inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-slate-700 transition';
@@ -276,43 +299,39 @@ class NeuralResourceManager {
     return videoId ? { videoId, startSeconds } : null;
   }
 
-  // --- GIAO DIỆN CHÍNH (ACCORDION KHUNG 4) ---
+  // --- GIAO DIỆN CHÍNH (ACCORDION KHUNG 4 VỚI 2 TABS) ---
   renderMainStructure() {
     const root = document.getElementById(this.containerId);
     if (!root) return;
 
     root.innerHTML = `
       <section class="mt-8 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden transition-colors">
+        
         <!-- Accordion Header -->
         <div class="px-6 py-4 flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
           <div class="flex items-center gap-3 cursor-pointer select-none" id="res-toggle-header">
-            <span class="text-xl">🎬</span>
+            <span class="text-xl">📓</span>
             <div>
-              <div class="flex items-center gap-2">
+              <div class="flex flex-wrap items-center gap-2">
                 <h3 class="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">
-                  Góc Học Tập, Video & Ghi Chú
+                  Sổ Tay Cá Nhân & Góc Học Tập
                 </h3>
-                <span id="res-counter-badge" class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300">
-                  ${this.getAllResources().length} Tư liệu
-                </span>
-                <!-- Huy hiệu file ổ cứng -->
                 <span id="res-file-badge" class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400 border border-slate-200 dark:border-slate-700 cursor-pointer hover:bg-slate-200">
                   📁 Gắn kết file ổ cứng
                 </span>
-                <!-- Huy hiệu trạng thái đồng bộ GitHub (Cảnh báo nhắc nhẹ) -->
                 <span id="res-sync-badge"></span>
               </div>
               <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                Tự động lưu vào máy tính, hỗ trợ Cửa Sổ Nổi (PiP) và đồng bộ thẳng lên GitHub
+                Tự do ghi chép ý tưởng, tự động lưu từng phím gõ, hỗ trợ nhúng video & PiP
               </p>
             </div>
             <span id="res-chevron" class="text-slate-400 text-xs transition-transform transform duration-200 ml-1">▼</span>
           </div>
 
           <div class="flex items-center gap-2">
-            <!-- Nút Thêm Tư Liệu -->
+            <!-- Nút Thêm Tư Liệu / Note -->
             <button id="btn-open-add-modal" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-blue-600 hover:bg-blue-700 text-white shadow-sm transition">
-              <span>+</span> Thêm Tư Liệu / Video
+              <span>+</span> Thêm Note / Video
             </button>
             
             <!-- Nút Đồng Bộ Lên GitHub -->
@@ -320,16 +339,70 @@ class NeuralResourceManager {
               <span>🚀</span> <span>Đồng Bộ Lên GitHub</span>
             </button>
 
-            <!-- Nút Xuất JSON / Cấu hình -->
+            <!-- Nút Xuất JSON -->
             <button id="btn-open-export-modal" class="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-slate-700 transition" title="Xem & Xuất mã JSON">
               <span>⚡</span> JSON
             </button>
           </div>
         </div>
 
+        <!-- TAB NAVIGATION -->
+        <div class="px-6 pt-3 border-b border-slate-200 dark:border-slate-800 bg-slate-50/30 dark:bg-slate-900/30 flex items-center justify-between">
+          <div class="flex items-center gap-1" id="tab-nav">
+            <button class="tab-btn active px-4 py-2 text-xs font-bold border-b-2 border-blue-600 text-blue-600 dark:text-blue-400 transition flex items-center gap-1.5" data-tab="notes">
+              <span>📝</span> <span>Sổ Tay Ghi Chú Cá Nhân</span>
+            </button>
+            <button class="tab-btn px-4 py-2 text-xs font-medium text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 border-b-2 border-transparent transition flex items-center gap-1.5" data-tab="videos">
+              <span>🎬</span> <span>Video & Tư Liệu Tham Khảo</span>
+              <span id="tab-res-count" class="text-[10px] px-1.5 py-0.2 rounded-full bg-slate-200 dark:bg-slate-800">${this.getAllResources().length}</span>
+            </button>
+          </div>
+
+          <div class="text-[11px] text-slate-400 hidden sm:block" id="tab-status-tip">
+            💾 Tự động lưu theo từng phím gõ
+          </div>
+        </div>
+
         <!-- Accordion Body -->
         <div id="res-content-body" class="p-6 transition-all duration-300">
-          <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          
+          <!-- TAB 1: SỔ TAY GHI CHÚ THUẦN TÚY (SCRATCHPAD) -->
+          <div id="tab-content-notes" class="flex flex-col gap-3">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <span class="text-xs font-bold text-slate-800 dark:text-white uppercase tracking-wider">
+                  Vùng Ghi Chép Tự Do (Personal Scratchpad)
+                </span>
+                <span id="notepad-save-indicator" class="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">
+                  ✓ Đã tự động lưu
+                </span>
+              </div>
+              <div class="flex items-center gap-2 text-xs text-slate-500">
+                <span id="notepad-char-count">0 ký tự</span>
+                <span>•</span>
+                <button id="btn-copy-notepad" class="hover:text-blue-600 dark:hover:text-blue-400 transition" title="Sao chép toàn bộ ghi chú">
+                  📋 Sao chép
+                </button>
+                <span>•</span>
+                <button id="btn-download-notepad" class="hover:text-blue-600 dark:hover:text-blue-400 transition" title="Tải về file Markdown">
+                  📥 Tải file .md
+                </button>
+                <span>•</span>
+                <button id="btn-clear-notepad" class="hover:text-rose-600 transition" title="Xóa trắng sổ tay">
+                  🧹 Xóa
+                </button>
+              </div>
+            </div>
+
+            <!-- Khung Soạn Thảo Ghi Chú Cá Nhân -->
+            <textarea id="personal-notepad" rows="9" 
+                      placeholder="Gõ bất kỳ ghi chú nào bạn muốn tại đây (công thức, ý tưởng, thắc mắc, đúc kết riêng...)...
+Mọi thứ bạn gõ vào đây đều TỰ ĐỘNG LƯU NGAY LẬP TỨC vào máy và file ổ cứng mà không cần link hay video gì cả!" 
+                      class="w-full p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-950/70 text-slate-800 dark:text-slate-100 font-mono text-xs leading-relaxed focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white dark:focus:bg-slate-950 transition"></textarea>
+          </div>
+
+          <!-- TAB 2: VIDEO LAB & TƯ LIỆU THAM KHẢO -->
+          <div id="tab-content-videos" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-6">
             
             <!-- Video Player Dock (Col 7) -->
             <div class="lg:col-span-7 flex flex-col gap-3" id="res-inline-player-wrapper">
@@ -362,81 +435,82 @@ class NeuralResourceManager {
             <!-- Resource Cards List (Col 5) -->
             <div class="lg:col-span-5 flex flex-col gap-3">
               <div class="flex items-center justify-between pb-1">
-                <span class="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wide">Danh Sách Tư Liệu Đã Lưu</span>
-                <span class="text-[11px] text-slate-400">Click để mở / xem video</span>
+                <span class="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wide">Danh Sách Tư Liệu & Thẻ Note</span>
+                <span class="text-[11px] text-slate-400">Click để mở / xem</span>
               </div>
               <div class="flex flex-col gap-2.5 overflow-y-auto max-h-[460px] pr-1" id="res-cards-list">
               </div>
             </div>
 
           </div>
+
         </div>
       </section>
 
-      <!-- MODAL THÊM TƯ LIỆU MỚI -->
+      <!-- MODAL THÊM TƯ LIỆU / NOTE MỚI -->
       <div id="res-modal-add" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white dark:bg-slate-900 rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 dark:border-slate-800 flex flex-col gap-4">
           <div class="flex items-center justify-between border-b dark:border-slate-800 pb-3">
             <div class="flex items-center gap-2">
               <span class="text-xl">➕</span>
-              <h3 class="text-base font-bold text-slate-900 dark:text-white">Thêm Tư Liệu Học Tập & Video</h3>
+              <h3 class="text-base font-bold text-slate-900 dark:text-white">Thêm Tư Liệu Hoặc Thẻ Ghi Chú</h3>
             </div>
             <button id="btn-close-add-modal" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 font-bold text-xl px-2">&times;</button>
           </div>
 
           <form id="res-form-add" class="flex flex-col gap-3 text-xs">
             <div>
-              <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Loại tư liệu:</label>
+              <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Loại mục:</label>
               <select id="form-input-type" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg p-2 text-slate-800 dark:text-slate-100">
-                <option value="youtube">🎥 Video YouTube (Tự nhận diện ID & Timestamp)</option>
-                <option value="blog">📝 Bài viết / Blog (Distill, TowardsDataScience...)</option>
-                <option value="paper">📄 Bài báo học thuật (ArXiv / Paper)</option>
+                <option value="note">📝 Thẻ Ghi Chú Cá Nhân (Không cần link)</option>
+                <option value="youtube">🎥 Video YouTube (Nhận diện ID & Timestamp)</option>
+                <option value="blog">📄 Bài viết / Blog / Tài liệu Web</option>
               </select>
             </div>
 
             <div>
-              <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Đường dẫn (URL) *:</label>
-              <input type="url" id="form-input-url" required placeholder="https://www.youtube.com/watch?v=... hoặc https://..." 
+              <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Tiêu đề ghi chú / tư liệu *:</label>
+              <input type="text" id="form-input-title" required placeholder="Ví dụ: Đúc kết về bước cập nhật tâm cụm K-Means..." 
                      class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg p-2 text-slate-800 dark:text-slate-100">
             </div>
 
-            <div>
-              <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Tiêu đề tư liệu *:</label>
-              <input type="text" id="form-input-title" required placeholder="Ví dụ: StatQuest K-Means in 5 minutes" 
+            <div id="form-group-url" class="hidden">
+              <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Đường dẫn (URL):</label>
+              <input type="url" id="form-input-url" placeholder="https://..." 
                      class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg p-2 text-slate-800 dark:text-slate-100">
             </div>
 
-            <div class="grid grid-cols-2 gap-3">
+            <div id="form-group-video-meta" class="hidden grid grid-cols-2 gap-3">
               <div>
                 <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Tác giả / Kênh:</label>
                 <input type="text" id="form-input-author" placeholder="Ví dụ: Josh Starmer" 
                        class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg p-2 text-slate-800 dark:text-slate-100">
               </div>
               <div>
-                <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Bắt đầu tại (Giây hoặc mm:ss):</label>
-                <input type="text" id="form-input-time" placeholder="Ví dụ: 120 hoặc 02:00" 
+                <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Bắt đầu tại (mm:ss hoặc giây):</label>
+                <input type="text" id="form-input-time" placeholder="Ví dụ: 02:00" 
                        class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg p-2 text-slate-800 dark:text-slate-100">
               </div>
             </div>
 
             <div>
-              <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Ghi chú cá nhân (Insight tâm đắc):</label>
-              <textarea id="form-input-notes" rows="3" placeholder="Ghi chú điều bạn học được, hoặc mốc thời gian đáng xem nhất..." 
+              <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Nội dung ghi chú *:</label>
+              <textarea id="form-input-notes" required rows="4" placeholder="Viết những gì bạn đúc kết, mẹo nhớ, hoặc giải thích cá nhân..." 
                         class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg p-2 text-slate-800 dark:text-slate-100"></textarea>
             </div>
 
             <div class="flex items-center justify-between pt-2">
               <div class="flex items-center gap-1 text-slate-600 dark:text-slate-300">
-                <span>Đánh giá:</span>
+                <span>Mức quan trọng:</span>
                 <select id="form-input-rating" class="bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded px-2 py-1 font-semibold text-amber-500">
-                  <option value="5">⭐⭐⭐⭐⭐ (Cực hay)</option>
-                  <option value="4">⭐⭐⭐⭐ (Rất tốt)</option>
+                  <option value="5">⭐⭐⭐⭐⭐ (Cốt lõi)</option>
+                  <option value="4">⭐⭐⭐⭐ (Quan trọng)</option>
                   <option value="3">⭐⭐⭐ (Tham khảo)</option>
                 </select>
               </div>
 
               <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition">
-                Lưu Tư Liệu
+                Lưu Thẻ Ghi Chú
               </button>
             </div>
           </form>
@@ -459,7 +533,7 @@ class NeuralResourceManager {
           </p>
 
           <div class="flex flex-col gap-2">
-            <label class="text-xs font-semibold text-slate-700 dark:text-slate-300">GitHub Token (Fine-grained / Classic):</label>
+            <label class="text-xs font-semibold text-slate-700 dark:text-slate-300">GitHub Token:</label>
             <input type="password" id="input-gh-token" placeholder="ghp_... hoặc github_pat_..." 
                    class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg p-2 text-xs font-mono text-slate-800 dark:text-slate-100">
             <p class="text-[11px] text-slate-400">Token được lưu an toàn tại LocalStorage máy bạn, không gửi đi đâu khác.</p>
@@ -484,13 +558,12 @@ class NeuralResourceManager {
               <span class="text-xl">⚡</span>
               <div>
                 <h3 class="text-base font-bold text-slate-900 dark:text-white">Xuất Cấu Hình JSON & Lệnh Git</h3>
-                <p class="text-xs text-slate-500 dark:text-slate-400">Copy đoạn JSON hoặc lệnh Git để lưu trữ vĩnh viễn</p>
+                <p class="text-xs text-slate-500 dark:text-slate-400">Toàn bộ sổ tay ghi chép và danh sách tư liệu</p>
               </div>
             </div>
             <button id="btn-close-export-modal" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 font-bold text-xl px-2">&times;</button>
           </div>
 
-          <!-- Lệnh Terminal nhanh -->
           <div class="bg-slate-900 p-3 rounded-xl border border-slate-800 text-[11px] mono text-emerald-400 flex items-center justify-between">
             <code>git add . && git commit -m "docs: sync notes" && git push</code>
             <button id="btn-copy-git-cmd" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-white rounded text-[10px]">Copy Lệnh</button>
@@ -511,8 +584,22 @@ class NeuralResourceManager {
       <div id="res-toast" class="fixed top-5 right-5 z-50 hidden px-4 py-2.5 rounded-xl shadow-2xl text-xs font-semibold transition-all duration-300 transform translate-y-[-10px]"></div>
     `;
 
+    // Nạp dữ liệu vào Notepad textarea
+    const notepad = document.getElementById('personal-notepad');
+    if (notepad) {
+      notepad.value = this.notepadContent;
+      this.updateCharCount(this.notepadContent);
+    }
+
     this.renderCardsList();
     this.updateFileStatusBadge(false);
+  }
+
+  updateCharCount(text) {
+    const el = document.getElementById('notepad-char-count');
+    if (el) {
+      el.innerText = `${text.length} ký tự`;
+    }
   }
 
   showToast(message, type = 'info') {
@@ -600,16 +687,16 @@ class NeuralResourceManager {
   // --- RENDER DANH SÁCH CARDS ---
   renderCardsList() {
     const listEl = document.getElementById('res-cards-list');
-    const badgeEl = document.getElementById('res-counter-badge');
+    const badgeEl = document.getElementById('tab-res-count');
     if (!listEl) return;
 
     const all = this.getAllResources();
-    if (badgeEl) badgeEl.innerText = `${all.length} Tư liệu`;
+    if (badgeEl) badgeEl.innerText = all.length;
 
     if (all.length === 0) {
       listEl.innerHTML = `
         <div class="text-xs text-slate-400 p-4 text-center border border-dashed border-slate-300 dark:border-slate-800 rounded-xl">
-          Chưa có tư liệu nào. Hãy bấm <strong>"+ Thêm Tư Liệu"</strong> để lưu link video hoặc blog đầu tiên!
+          Chưa có mục nào. Bấm <strong>"+ Thêm Note / Video"</strong> để tạo thẻ ghi chú hoặc video đầu tiên!
         </div>
       `;
       return;
@@ -617,9 +704,23 @@ class NeuralResourceManager {
 
     listEl.innerHTML = all.map(res => {
       const isVideo = res.type === 'youtube';
+      const isNoteOnly = res.type === 'note' || (!res.url && !isVideo);
       const isSelected = this.activeVideo && this.activeVideo.id === res.id;
-      const icon = isVideo ? '🎥' : (res.type === 'paper' ? '📄' : '📝');
-      const badgeType = isVideo ? 'bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300' : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300';
+      
+      let icon = '📝';
+      let badgeType = 'bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300';
+      let labelType = 'Ghi Chú';
+
+      if (isVideo) {
+        icon = '🎥';
+        badgeType = 'bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300';
+        labelType = 'YouTube';
+      } else if (res.type === 'paper') {
+        icon = '📄';
+        badgeType = 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300';
+        labelType = 'Doc/Paper';
+      }
+
       const stars = '⭐'.repeat(res.rating || 5);
 
       return `
@@ -631,17 +732,17 @@ class NeuralResourceManager {
               <h4 class="text-xs font-bold text-slate-800 dark:text-slate-100 truncate">${res.title}</h4>
             </div>
             <span class="text-[10px] px-1.5 py-0.5 rounded font-semibold shrink-0 ${badgeType}">
-              ${isVideo ? 'YouTube' : 'Blog/Doc'}
+              ${labelType}
             </span>
           </div>
 
           <div class="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
-            <span>Tác giả: <strong>${res.author || 'Ngoại nguồn'}</strong></span>
+            <span>Tác giả: <strong>${res.author || 'Cá nhân'}</strong></span>
             <span class="text-[10px]">${stars}</span>
           </div>
 
           ${res.userNotes ? `
-            <p class="text-[11px] text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-900 p-2 rounded-lg border border-slate-100 dark:border-slate-800 leading-normal line-clamp-2">
+            <p class="text-[11px] text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-900 p-2 rounded-lg border border-slate-100 dark:border-slate-800 leading-normal line-clamp-3">
               💡 ${res.userNotes}
             </p>
           ` : ''}
@@ -651,11 +752,13 @@ class NeuralResourceManager {
               <button class="btn-play-card text-blue-600 dark:text-blue-400 font-semibold hover:underline flex items-center gap-1" data-id="${res.id}">
                 ▶ Xem Video ${res.startSeconds ? `(${Math.floor(res.startSeconds/60)}p${res.startSeconds%60}s)` : ''}
               </button>
-            ` : `
+            ` : (res.url ? `
               <a href="${res.url}" target="_blank" rel="noopener noreferrer" class="text-blue-600 dark:text-blue-400 font-semibold hover:underline flex items-center gap-1" onclick="event.stopPropagation()">
                 Mở Bài Viết ↗
               </a>
-            `}
+            ` : `
+              <span class="text-[11px] text-blue-600 dark:text-blue-400 font-medium">Ghi chú cá nhân</span>
+            `)}
 
             ${res.source === 'custom' ? `
               <button class="btn-delete-card text-slate-400 hover:text-rose-500 font-semibold transition" data-id="${res.id}" title="Xóa tư liệu này" onclick="event.stopPropagation()">
@@ -674,6 +777,8 @@ class NeuralResourceManager {
         const id = card.getAttribute('data-id');
         const res = this.getAllResources().find(r => r.id === id);
         if (res && res.type === 'youtube') {
+          // Chuyển sang tab video nếu đang ở tab notes
+          this.switchTab('videos');
           this.playVideo(id);
         } else if (res && res.url) {
           window.open(res.url, '_blank');
@@ -717,12 +822,10 @@ class NeuralResourceManager {
       }
     }
 
-    // Nhúng Iframe với chuẩn YouTube Embed tương thích cao
     const isLocalFile = window.location.protocol === 'file:';
     const originParam = !isLocalFile && window.location.origin ? `&origin=${encodeURIComponent(window.location.origin)}` : '';
     const startParam = res.startSeconds ? `&start=${res.startSeconds}` : '';
     
-    // Sử dụng youtube.com/embed chuẩn (thay vì youtube-nocookie vì nocookie hay chặn local origin gây Error 153)
     const embedUrl = `https://www.youtube.com/embed/${res.videoId}?enablejsapi=1&rel=0&modestbranding=1${startParam}${originParam}`;
     
     const iframeHtml = `
@@ -733,7 +836,6 @@ class NeuralResourceManager {
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
                 allowfullscreen></iframe>
         
-        <!-- Thanh dự phòng thông minh khi YouTube chặn embed trên file:/// -->
         <div class="bg-slate-900/90 px-3 py-1.5 flex items-center justify-between text-[11px] text-slate-400 border-t border-slate-800">
           <span class="truncate">Không phát được do chính sách YouTube?</span>
           <div class="flex items-center gap-2 shrink-0">
@@ -763,7 +865,7 @@ class NeuralResourceManager {
 
     this.renderCardsList();
 
-    if (scrollIntoView && !this.isPiP) {
+    if (scrollIntoView && !this.isPiP && this.activeTab === 'videos') {
       document.getElementById('res-inline-player-wrapper')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
   }
@@ -800,10 +902,39 @@ class NeuralResourceManager {
     }
   }
 
-  // --- THÊM & XÓA CUSTOM RESOURCE ---
+  // --- CHUYỂN TAB ---
+  switchTab(tabName) {
+    this.activeTab = tabName;
+    const tabNotes = document.getElementById('tab-content-notes');
+    const tabVideos = document.getElementById('tab-content-videos');
+    const buttons = document.querySelectorAll('.tab-btn');
+
+    buttons.forEach(b => {
+      if (b.getAttribute('data-tab') === tabName) {
+        b.className = 'tab-btn active px-4 py-2 text-xs font-bold border-b-2 border-blue-600 text-blue-600 dark:text-blue-400 transition flex items-center gap-1.5';
+      } else {
+        b.className = 'tab-btn px-4 py-2 text-xs font-medium text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 border-b-2 border-transparent transition flex items-center gap-1.5';
+      }
+    });
+
+    if (tabName === 'notes') {
+      tabNotes?.classList.remove('hidden');
+      tabVideos?.classList.add('hidden');
+    } else {
+      tabNotes?.classList.add('hidden');
+      tabVideos?.classList.remove('hidden');
+      // Nếu có video thì đảm bảo video được render đúng dock
+      if (this.activeVideo) {
+        this.playVideo(this.activeVideo.id, false);
+      }
+    }
+  }
+
+  // --- THÊM & XÓA CUSTOM RESOURCE / NOTE ---
   addCustomResource(data) {
     const newId = `custom_${Date.now()}`;
-    const parsed = data.type === 'youtube' ? NeuralResourceManager.parseYouTube(data.url) : null;
+    const isVideo = data.type === 'youtube';
+    const parsed = isVideo ? NeuralResourceManager.parseYouTube(data.url) : null;
 
     let startSec = 0;
     if (data.timeInput) {
@@ -823,8 +954,8 @@ class NeuralResourceManager {
       id: newId,
       type: data.type,
       title: data.title,
-      author: data.author || 'Tự lưu trữ',
-      url: data.url,
+      author: data.author || 'Ghi chép của tôi',
+      url: data.url || '',
       videoId: parsed ? parsed.videoId : null,
       startSeconds: startSec,
       userNotes: data.notes || '',
@@ -838,17 +969,18 @@ class NeuralResourceManager {
     this.renderCardsList();
 
     if (item.type === 'youtube') {
+      this.switchTab('videos');
       this.playVideo(item.id);
     }
-    this.showToast('✅ Đã lưu tư liệu thành công vào máy tính!', 'success');
+    this.showToast('✅ Đã lưu thẻ ghi chú thành công vào máy tính!', 'success');
   }
 
   deleteCustomResource(id) {
-    if (confirm('Bạn có chắc muốn xóa tư liệu ghi chú này?')) {
+    if (confirm('Bạn có chắc muốn xóa thẻ này?')) {
       this.customList = this.customList.filter(item => item.id !== id);
       this.saveCustomResources();
       this.renderCardsList();
-      this.showToast('🗑 Đã xóa tư liệu khỏi máy tính.', 'info');
+      this.showToast('🗑 Đã xóa thẻ khỏi máy tính.', 'info');
     }
   }
 
@@ -871,13 +1003,77 @@ class NeuralResourceManager {
       }
     });
 
-    // 2. Gắn kết file ổ cứng
+    // 2. Chuyển Tab (Sổ tay cá nhân vs Video Lab)
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const tab = btn.getAttribute('data-tab');
+        this.switchTab(tab);
+      });
+    });
+
+    // 3. Sổ tay tự động lưu theo từng phím gõ (Auto-save on debounce)
+    const notepad = document.getElementById('personal-notepad');
+    const indicator = document.getElementById('notepad-save-indicator');
+    let saveTimeout = null;
+
+    notepad?.addEventListener('input', (e) => {
+      const val = e.target.value;
+      this.updateCharCount(val);
+      if (indicator) {
+        indicator.innerText = 'Đang lưu...';
+        indicator.className = 'text-[11px] text-amber-500 font-medium';
+      }
+
+      clearTimeout(saveTimeout);
+      saveTimeout = setTimeout(() => {
+        this.saveNotepad(val);
+        if (indicator) {
+          indicator.innerText = '✓ Đã tự động lưu';
+          indicator.className = 'text-[11px] text-emerald-600 dark:text-emerald-400 font-medium';
+        }
+      }, 350);
+    });
+
+    // 4. Các nút thao tác Sổ tay
+    document.getElementById('btn-copy-notepad')?.addEventListener('click', () => {
+      const text = notepad.value;
+      if (!text) return;
+      navigator.clipboard.writeText(text).then(() => {
+        this.showToast('📋 Đã sao chép toàn bộ ghi chú!', 'info');
+      });
+    });
+
+    document.getElementById('btn-download-notepad')?.addEventListener('click', () => {
+      const text = notepad.value;
+      if (!text) {
+        alert('Sổ tay đang trống!');
+        return;
+      }
+      const blob = new Blob([text], { type: 'text/markdown;charset=utf-8' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `${this.topicId}-notes.md`;
+      a.click();
+      URL.revokeObjectURL(a.href);
+      this.showToast('📥 Đã tải file markdown về máy!', 'success');
+    });
+
+    document.getElementById('btn-clear-notepad')?.addEventListener('click', () => {
+      if (confirm('Bạn có chắc muốn xóa toàn bộ nội dung trong sổ tay này?')) {
+        notepad.value = '';
+        this.saveNotepad('');
+        this.updateCharCount('');
+        this.showToast('🧹 Đã xóa sạch sổ tay.', 'info');
+      }
+    });
+
+    // 5. Gắn kết file ổ cứng
     document.getElementById('res-file-badge')?.addEventListener('click', () => this.linkLocalFile());
 
-    // 3. Nút Đồng bộ GitHub
+    // 6. Nút Đồng bộ GitHub
     document.getElementById('btn-sync-github')?.addEventListener('click', () => this.syncToGitHub());
 
-    // 4. Modal GitHub Token
+    // 7. Modal GitHub Token
     const ghModal = document.getElementById('res-modal-gh-config');
     const ghInput = document.getElementById('input-gh-token');
     const existingToken = localStorage.getItem(this.ghTokenKey);
@@ -900,13 +1096,35 @@ class NeuralResourceManager {
       this.showToast('Đã xóa GitHub Token.', 'info');
     });
 
-    // 5. PiP Buttons
+    // 8. PiP Buttons
     document.getElementById('btn-toggle-pip')?.addEventListener('click', () => this.togglePiP());
     document.getElementById('btn-pip-dock')?.addEventListener('click', () => this.togglePiP());
     document.getElementById('btn-pip-close')?.addEventListener('click', () => this.togglePiP());
 
-    // 6. Add Modal
+    // 9. Add Modal (Hiện/ẩn trường URL theo loại)
     const addModal = document.getElementById('res-modal-add');
+    const typeSelect = document.getElementById('form-input-type');
+    const groupUrl = document.getElementById('form-group-url');
+    const groupVideoMeta = document.getElementById('form-group-video-meta');
+    const inputUrl = document.getElementById('form-input-url');
+
+    typeSelect?.addEventListener('change', (e) => {
+      const val = e.target.value;
+      if (val === 'note') {
+        groupUrl.classList.add('hidden');
+        groupVideoMeta.classList.add('hidden');
+        inputUrl.required = false;
+      } else if (val === 'youtube') {
+        groupUrl.classList.remove('hidden');
+        groupVideoMeta.classList.remove('hidden');
+        inputUrl.required = true;
+      } else {
+        groupUrl.classList.remove('hidden');
+        groupVideoMeta.classList.add('hidden');
+        inputUrl.required = true;
+      }
+    });
+
     document.getElementById('btn-open-add-modal')?.addEventListener('click', () => addModal.classList.remove('hidden'));
     document.getElementById('btn-close-add-modal')?.addEventListener('click', () => addModal.classList.add('hidden'));
 
@@ -925,11 +1143,11 @@ class NeuralResourceManager {
       e.target.reset();
     });
 
-    // 7. Export Modal
+    // 10. Export Modal
     const exportModal = document.getElementById('res-modal-export');
     const exportTextarea = document.getElementById('res-export-textarea');
     document.getElementById('btn-open-export-modal')?.addEventListener('click', () => {
-      const all = this.getAllResources();
+      const all = this.getCombinedData();
       exportTextarea.value = JSON.stringify(all, null, 2);
       exportModal.classList.remove('hidden');
     });
