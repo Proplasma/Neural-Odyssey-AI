@@ -288,8 +288,10 @@
       // Khởi tạo Resource & Video Lab
       if (typeof NeuralResourceManager !== 'undefined') {
         new NeuralResourceManager({
-          topicId: '[TEN_THUAT_TOAN]', // Thay bằng topic id duy nhất (ví dụ: cnn-2d, self-attention)
+          topicId: '[TEN_THUAT_TOAN]', // Ví dụ: cnn-2d, self-attention
           containerId: 'resource-lab-container',
+          repoName: 'Proplasma/Neural-Odyssey-AI',
+          filePath: 'simulations/[CHUONG]/[TEN_THUAT_TOAN]-resources.json',
           curatedResources: [
             /* Thêm các video/blog mẫu tuyển chọn tại đây */
           ]
