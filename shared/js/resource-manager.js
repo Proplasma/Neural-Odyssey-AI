@@ -717,13 +717,40 @@ class NeuralResourceManager {
       }
     }
 
-    const startParam = res.startSeconds ? `?start=${res.startSeconds}&autoplay=1` : `?autoplay=1`;
-    const embedUrl = `https://www.youtube-nocookie.com/embed/${res.videoId}${startParam}`;
+    // Nhúng Iframe với chuẩn YouTube Embed tương thích cao
+    const isLocalFile = window.location.protocol === 'file:';
+    const originParam = !isLocalFile && window.location.origin ? `&origin=${encodeURIComponent(window.location.origin)}` : '';
+    const startParam = res.startSeconds ? `&start=${res.startSeconds}` : '';
+    
+    // Sử dụng youtube.com/embed chuẩn (thay vì youtube-nocookie vì nocookie hay chặn local origin gây Error 153)
+    const embedUrl = `https://www.youtube.com/embed/${res.videoId}?enablejsapi=1&rel=0&modestbranding=1${startParam}${originParam}`;
+    
     const iframeHtml = `
-      <iframe src="${embedUrl}" title="${res.title}" 
-              class="w-full h-full border-0" 
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-              allowfullscreen></iframe>
+      <div class="relative w-full h-full flex flex-col">
+        <iframe src="${embedUrl}" title="${res.title}" 
+                class="w-full h-full border-0 flex-1" 
+                referrerpolicy="strict-origin-when-cross-origin"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                allowfullscreen></iframe>
+        
+        <!-- Thanh dự phòng thông minh khi YouTube chặn embed trên file:/// -->
+        <div class="bg-slate-900/90 px-3 py-1.5 flex items-center justify-between text-[11px] text-slate-400 border-t border-slate-800">
+          <span class="truncate">Không phát được do chính sách YouTube?</span>
+          <div class="flex items-center gap-2 shrink-0">
+            <a href="${res.url}" target="_blank" rel="noopener noreferrer" 
+               class="text-amber-400 hover:text-amber-300 font-semibold inline-flex items-center gap-1 hover:underline">
+              <span>Mở Xem Trên YouTube</span> ↗
+            </a>
+            ${isLocalFile ? `
+              <span class="text-slate-600">|</span>
+              <a href="https://proplasma.github.io/Neural-Odyssey-AI/simulations/02-classical-ml/kmeans-clustering.html" target="_blank" 
+                 class="text-blue-400 hover:text-blue-300 font-medium hover:underline" title="Xem trên link online có HTTPS để tránh lỗi Error 153">
+                Xem trên GitHub Pages 🌐
+              </a>
+            ` : ''}
+          </div>
+        </div>
+      </div>
     `;
 
     const targetContainer = this.isPiP 
