@@ -93,7 +93,24 @@ Mỗi trang HTML minh họa thuật toán **BẮT BUỘC** phải có một khu 
    * Cung cấp link tới bài báo khoa học gốc (arXiv), bài viết giải thích của Distill.pub hoặc trang web tương tác kinh điển đối chiếu.
 3. **Mục đích:** Người học không bao giờ phải tin tưởng mù quáng vào code của AI. Chỉ cần 1 cú click chuột (`target="_blank"`), người học có thể mở tab mới để đối chiếu trực tiếp công thức toán và mô hình trực quan với công trình nghiên cứu chuẩn quốc tế.
 
-## 8. QUY CHUẨN KỸ THUẬT & THƯ VIỆN ĐỀ XUẤT (TECH STACK)
+## 8. GÓC HỌC TẬP, VIDEO THỰC NGHIỆM & PICTURE-IN-PICTURE (RESOURCE & VIDEO LAB SPEC)
+
+Mỗi trang mô phỏng thuật toán **BẮT BUỘC** phải có một khu vực chân trang (đặt ngay bên dưới 3 khung chính) dành cho việc mở rộng tri thức, nhúng video bài giảng và ghi chú cá nhân:
+
+1. **Kiến trúc Accordion & Cửa Sổ Nổi (Picture-in-Picture - PiP):**
+   * Đặt ở cuối trang dạng Accordion có thể gập/mở mượt mà, không che khuất 3 khung đồ họa toán học phía trên.
+   * Cung cấp nút **"Bật Cửa Sổ Nổi (PiP)"**: Biến trình phát video thành một khung mini thả nổi cố định ở góc dưới màn hình, có thể kéo thả tự do (`draggable`) để người học vừa xem video vừa trực tiếp tương tác với đồ thị/canvas.
+2. **Auto-Parser Link YouTube & Timestamp Bookmarks:**
+   * Tự động nhận diện mọi định dạng link YouTube (kèm `&t=...` hoặc `?start=...`) để nhúng qua `youtube-nocookie.com`.
+   * Hỗ trợ lưu mốc thời gian (Timestamp) để bấm 1 phát nhảy ngay đến đoạn giảng giải quan trọng nhất.
+3. **Thẻ Blog & Ghi Chú Cá Nhân (Personal Insights):**
+   * Cho phép lưu link bài viết (Distill, TowardsDataScience, ArXiv) kèm đánh giá 1-5 sao ⭐ và đoạn văn ngắn ghi chú lý do tại sao tài liệu này hay.
+4. **Cơ Chế Đồng Bộ Lai (LocalStorage Override + Git Sync Export):**
+   * Mọi tài liệu do người dùng tự thêm sẽ được tự động lưu vào `localStorage` của trình duyệt.
+   * Có nút **"⚡ Xuất JSON"** để người học 1-click copy toàn bộ cấu trúc dữ liệu JSON dán vào code để commit lên GitHub lưu trữ vĩnh viễn.
+5. **Thư viện dùng chung:** Sử dụng module `shared/js/resource-manager.js`.
+
+## 9. QUY CHUẨN KỸ THUẬT & THƯ VIỆN ĐỀ XUẤT (TECH STACK)
 
 * **Kiến trúc File:** Ưu tiên đóng gói toàn bộ HTML, CSS (sử dụng **Tailwind CSS** qua CDN), và JavaScript vào **một file `.html` duy nhất** (Self-contained Single File) cho mỗi thuật toán để dễ dàng lưu trữ, mở trực tiếp trên trình duyệt hoặc đẩy lên GitHub Pages.
 * **Thư viện CDN khuyên dùng:**

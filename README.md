@@ -20,6 +20,7 @@ Dự án này được bảo đảm chất lượng bởi bộ quy chuẩn kỹ 
 3. **Thanh Tra Cứu & Kiểm Chứng Gốc (1-Click Verification Badges):** Mỗi trang mô phỏng luôn có nút liên kết trực tiếp tới repo mã nguồn gốc trên GitHub và bài báo nghiên cứu gốc để người học tự kiểm chứng độ tin cậy.
 4. **Chế Độ Kiểm Thử Nhẩm Tay 15s (3x3 Audit Mode):** Chạy thuật toán trên tập dữ liệu tối giản (ma trận 3x3 hoặc 3 điểm tọa độ nguyên) kèm log từng bước để đối chiếu khớp 100%.
 5. **Tiêu Chuẩn Song Ngữ Thông Minh (Bilingual System):** Dẫn dắt bằng tiếng Việt tự nhiên; giữ nguyên thuật ngữ chuyên ngành tiếng Anh in đậm kèm **Interactive Glossary Tooltip** nổi lên khi di chuột.
+6. **Góc Học Tập & Video Lab (Picture-in-Picture):** Cho phép tự thêm video YouTube (nhận diện timestamp tự động), lưu link blog, ghi chú cá nhân, mở cửa sổ nổi PiP draggable để vừa xem vừa kéo thả Canvas, và 1-click xuất JSON để commit lên Git.
 
 ---
 
@@ -49,7 +50,11 @@ Mọi thuật toán trong dự án đều được đối chiếu trực tiếp 
 │   ├── ai_interactive_visualizer_spec.md   # Master Spec cho AI Coding Agent
 │   ├── golden_references.md                # Bảng liên kết tra cứu nhanh
 │   └── templates/
-│       └── starter_template.html           # File khung trắng 3 cột chuẩn
+│       └── starter_template.html           # File khung trắng chuẩn (có sẵn Khung 4 & PiP)
+│
+├── shared/                                 # Tài nguyên & Logic dùng chung
+│   └── js/
+│       └── resource-manager.js             # Bộ điều phối YouTube, PiP, LocalStorage & JSON Export
 │
 └── simulations/                            # Các trang mô phỏng theo 5 chương
     ├── 01-math-foundations/                # Đại số tuyến tính, Gradient Descent, Xác suất

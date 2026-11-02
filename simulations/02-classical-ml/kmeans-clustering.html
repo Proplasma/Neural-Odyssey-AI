@@ -276,6 +276,11 @@
     </section>
   </main>
 
+  <!-- KHUNG 4: GÓC HỌC TẬP, VIDEO THỰC NGHIỆM & PICTURE-IN-PICTURE (RESOURCE & VIDEO LAB) -->
+  <div class="max-w-7xl mx-auto px-6 pb-10 w-full" id="resource-lab-container">
+    <!-- Component Resource Manager sẽ được render tự động tại đây -->
+  </div>
+
   <!-- MODAL CHẾ ĐỘ KIỂM THỬ NHẨM TAY (3x3 AUDIT MODE) -->
   <div id="audit-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
     <div class="bg-white dark:bg-slate-900 rounded-2xl max-w-2xl w-full p-6 shadow-2xl border border-slate-200 dark:border-slate-800 flex flex-col gap-4">
@@ -749,7 +754,56 @@
     window.addEventListener('DOMContentLoaded', () => {
       generateDataset(K, 30);
       initCentroids();
+
+      // Khởi tạo Khung 4: Resource & Video Lab với các tư liệu chuẩn vàng có sẵn
+      if (typeof NeuralResourceManager !== 'undefined') {
+        new NeuralResourceManager({
+          topicId: 'kmeans-clustering',
+          containerId: 'resource-lab-container',
+          curatedResources: [
+            {
+              id: 'statquest_kmeans',
+              type: 'youtube',
+              title: 'StatQuest: K-means clustering in 5 minutes',
+              author: 'Josh Starmer (StatQuest)',
+              url: 'https://www.youtube.com/watch?v=4b5d3muPQmA',
+              videoId: '4b5d3muPQmA',
+              startSeconds: 0,
+              userNotes: 'Video ngắn giải thích trực giác hình học xuất sắc nhất về cách gán cụm và cập nhật tâm bằng trung bình cộng.',
+              rating: 5,
+              source: 'curated'
+            },
+            {
+              id: 'stanford_cs229_kmeans',
+              type: 'paper',
+              title: 'Stanford CS229: Unsupervised Learning & K-Means Proof',
+              author: 'Andrew Ng (Stanford CS229)',
+              url: 'https://cs229.stanford.edu/notes2022fall/main_notes.pdf',
+              videoId: null,
+              startSeconds: 0,
+              userNotes: 'Chứng minh toán học sự hội tụ của hàm mất mát Distortion Function J không bao giờ tăng qua từng bước lặp.',
+              rating: 5,
+              source: 'curated'
+            },
+            {
+              id: 'towards_datascience_kmeans',
+              type: 'blog',
+              title: 'Understanding K-means Clustering: From Intuition to Math',
+              author: 'Towards Data Science',
+              url: 'https://towardsdatascience.com/k-means-clustering-algorithm-applications-evaluation-methods-and-drawbacks-aa03e644b436',
+              videoId: null,
+              startSeconds: 0,
+              userNotes: 'Phân tích kỹ lưỡng phương pháp Elbow Method và Silhouette Score để xác định số lượng K lý tưởng.',
+              rating: 4,
+              source: 'curated'
+            }
+          ]
+        });
+      }
     });
   </script>
+
+  <!-- RESOURCE MANAGER SCRIPT -->
+  <script src="../../shared/js/resource-manager.js"></script>
 </body>
 </html>

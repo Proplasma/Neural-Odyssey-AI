@@ -13,4 +13,5 @@ Khi làm việc trong kho lưu trữ này, bạn BẮT BUỘC phải tuân thủ
 4. **THANH TRA CỨU & KIỂM CHỨNG GỐC (REFERENCE BADGES):** Ở đầu trang (Header), bắt buộc có huy hiệu liên kết trực tiếp (`target="_blank"`) dẫn về Repo GitHub tham chiếu gốc (chỉ rõ file lõi) và bài báo nghiên cứu gốc để người học tự kiểm chứng.
 5. **SONG NGỮ THÔNG MINH:** Dẫn dắt bằng tiếng Việt tự nhiên; giữ nguyên thuật ngữ chuyên ngành tiếng Anh in đậm có dấu gạch chân chấm bi, kèm Interactive Tooltip (Nghĩa tiếng Việt, Ký hiệu toán học, Bản chất trực quan).
 6. **CHẾ ĐỘ KIỂM THỬ NHẨM TAY 30s (3x3 AUDIT MODE):** Luôn có nút bật Toy Dataset siêu nhỏ (ma trận 3x3 hoặc 3 điểm tọa độ nguyên) kèm log tính toán từng bước để người học nhẩm tay kiểm chứng độ chính xác.
-7. **TECH STACK:** Đóng gói trong 1 file `.html` duy nhất (Single-File Component) sử dụng CDN Tailwind CSS, KaTeX, HTML5 Canvas/SVG, D3.js hoặc Chart.js.
+7. **GÓC HỌC TẬP & VIDEO THỰC NGHIỆM (KHUNG 4):** Đặt ở chân trang dạng Accordion tích hợp trình phát YouTube (nhận diện timestamp), thẻ blog/bài báo, nút mở cửa sổ nổi Picture-in-Picture (PiP) draggable để vừa xem vừa kéo thả Canvas, và nút xuất JSON để lưu trữ Git. Sử dụng `shared/js/resource-manager.js`.
+8. **TECH STACK:** Đóng gói trong file `.html` sử dụng CDN Tailwind CSS (Dark/Light mode), KaTeX, HTML5 Canvas/SVG, D3.js hoặc Chart.js.

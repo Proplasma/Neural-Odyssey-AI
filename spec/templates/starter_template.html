@@ -223,6 +223,11 @@
     </section>
   </main>
 
+  <!-- KHUNG 4: GÓC HỌC TẬP, VIDEO THỰC NGHIỆM & PICTURE-IN-PICTURE (RESOURCE & VIDEO LAB) -->
+  <div class="max-w-7xl mx-auto px-6 pb-10 w-full" id="resource-lab-container">
+    <!-- Component Resource Manager sẽ được render tự động tại đây -->
+  </div>
+
   <!-- MODAL / DRAWER CHO CHẾ ĐỘ KIỂM THỬ 3x3 AUDIT MODE -->
   <div id="audit-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
     <div class="bg-white dark:bg-slate-900 rounded-2xl max-w-2xl w-full p-6 shadow-2xl border border-slate-200 dark:border-slate-800 flex flex-col gap-4">
@@ -279,7 +284,21 @@
       const modal = document.getElementById('audit-modal');
       document.getElementById('btn-audit').addEventListener('click', () => modal.classList.remove('hidden'));
       document.getElementById('btn-close-audit').addEventListener('click', () => modal.classList.add('hidden'));
+
+      // Khởi tạo Resource & Video Lab
+      if (typeof NeuralResourceManager !== 'undefined') {
+        new NeuralResourceManager({
+          topicId: '[TEN_THUAT_TOAN]', // Thay bằng topic id duy nhất (ví dụ: cnn-2d, self-attention)
+          containerId: 'resource-lab-container',
+          curatedResources: [
+            /* Thêm các video/blog mẫu tuyển chọn tại đây */
+          ]
+        });
+      }
     });
   </script>
+
+  <!-- RESOURCE & VIDEO LAB SCRIPT -->
+  <script src="../../shared/js/resource-manager.js"></script>
 </body>
 </html>
